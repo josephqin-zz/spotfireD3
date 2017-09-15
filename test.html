@@ -1,13 +1,14 @@
 <html>
 	<head>
 		<script src="d3/d3.min.js"></script>
-		
+		<script src="src/utility.js"></script>
 		<style type="text/css">
 		#tableCanvas {
 		    height: 100%;
-		    width: 100%;
+		    width: 60%;
 		    border:2px solid #000;
 		    overflow: scroll;
+		    margin-left:40%;
 		   
 		}
 
@@ -26,7 +27,7 @@
 	</body>
 	<script>
     var svg = d3.select('#UI');
-   
+    d3.json('test.txt',function(data){console.log(data)});
 
  		
 	</script>
