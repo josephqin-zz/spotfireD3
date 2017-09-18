@@ -27,7 +27,7 @@ window.agios = (function(){
     	return [...groups].reverse()
     					  .reduce((acc,d)=>d.reduce((a,g)=>{a.push({key:g}); return a},[]).map((k)=>{k.values=[...acc];return k}),[])
     }
-    //
+    //create group frame given gourps posibile value array 
     exports.groupFrame = function(groups){
     	return groups.reduce((acc,d)=>{ 
     				 let acclength = acc.length>0?d.length*acc[acc.length-1].length:d.length; 
@@ -35,6 +35,11 @@ window.agios = (function(){
     				 return acc; 
     				},[])
     }
+    
+    //get groups combination by given index
+    exports.groupFn = (groups)=> (num)=>[...groups].reverse().reduce((acc,d)=>{ acc.push(d[acc[0]%(d.length)]);acc[0]=Math.floor(acc[0]/(d.length));return acc},[num]).slice(1);
+    //nest dictionary get values
+    exports.nestFn = (nestObj)=> (groups)=>[...groups].reverse().reduce((acc,d)=>acc[d]?acc[d]:[],nestObj)
 
 	return exports;
 })()
