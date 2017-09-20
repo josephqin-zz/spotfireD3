@@ -22,7 +22,7 @@ window.agios = (function(){
         if (Array.isArray(data)) return {key:keys,values:data}
         else 
             {  
-               return Object.keys(data).map((key)=>this.flatenNest(data[key],[...keys,key]))
+               return Object.keys(data).reduce((acc,key)=>[...acc,...this.flatenNest(data[key],[])],[])
             } 
     }
     
