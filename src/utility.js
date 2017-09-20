@@ -17,6 +17,14 @@ window.agios = (function(){
 		groups.map((f)=>((d)=>d[f])).forEach((d)=>nest.key(d))
 		return nest.sortKeys(d3.ascending);
 	};
+    //flaten NestData
+    exports.flatenNest = function (data,keys){
+        if (Array.isArray(data)) return {key:keys,values:data}
+        else 
+            {  
+               return Object.keys(data).map((key)=>this.flatenNest(data[key],[...keys,key]))
+            } 
+    }
     
     //get unique values array of give group name list
     exports.groupValue = function(dataset,groups){
@@ -40,6 +48,6 @@ window.agios = (function(){
     exports.groupFn = (groups)=> (num)=>[...groups].reverse().reduce((acc,d)=>{ acc.push(d[acc[0]%(d.length)]);acc[0]=Math.floor(acc[0]/(d.length));return acc},[num]).slice(1);
     //nest dictionary get values
     exports.nestFn = (nestObj)=> (groups)=>[...groups].reverse().reduce((acc,d)=>acc[d]?acc[d]:[],nestObj)
-
+    
 	return exports;
 })()
