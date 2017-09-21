@@ -4,26 +4,40 @@ agios.spotfirePanel = (function(){
 		sampleData = new Array,
 		trellisGroups = new Array,
 		dataGroups = new Array,
-        rollupFn = (leave)=>leave;
+        width = 1000,
+        height = 500,
+        rollupFn = (leave)=>d3.mean(leave.map((d)=>d.areatop));
+    //get group hierachy info for xAxis render
+    var getGroupMetaData = (groupList,sampleGroups) => groupList.map((g,i)=>{return {
+            key:g,
+            values:sampleGroups.map((t)=>t.key.filter((k,index)=>index<=i))
+                               .reduce((acc,sg,j,self)=>{
+                                (j>0 && self[j-1].toString()===sg.toString())?acc[acc.length-1].values.push(j):acc.push({key:sg[sg.length-1],values:[j]});
+                                return acc;},
+                                [])
+            } 
+        })
+    //get sampeMap index is the unique group and name will keep the name to identify which level of the groups to determine the color.
+    var getSampleMap = (sampleGroups) => sampleGroups.reduce((acc,d,i)=>d.values.reduce((a,v)=>{ a[v]=i;return a },acc),{})
 
+	function exports(_selection){
+        
 
-	function exports(){
+        //get sample groups 
+        var sampleGroups = agios.flatenNest(agios.groupBy(dataGroups).rollup((leave)=>leave.map((d)=>d.sample_id)).object(sampleData)).filter((d)=>!d.key.includes('null'));
+        console.log(sampleGroups)      
+        var groupMetadata = getGroupMetaData(dataGroups,sampleGroups)
+              
+        var sampleMap = getSampleMap(sampleGroups)
+        //get mavenData 
         
         
-        var sampleDataset = agios.groupBy(dataGroups).rollup((leave)=>leave.map((d)=>d.sample_id)).object(sampleData);
-        var groupHierachy = agios.groupValue(sampleData,dataGroups).map((d)=>d.filter((n)=>n!==null));
-        var groupFn = agios.groupFn(groupHierachy);
-		var nestFn = agios.nestFn(sampleDataset);
-             
+        var sampleIds = sampleGroups.reduce((acc,d)=>[...acc,...d.values],[])
+        var chartData = agios.groupBy(trellisGroups).key((d)=>sampleMap[d.sample_id]).rollup((leave)=>{return {y:rollupFn(leave),peak_id:leave.map((d)=>d.peak_id)}}).entries(mavenData.filter((d)=>sampleIds.includes(d.sample_id)))
+        var mainCanvasFn = agios.canvasWin.bindData(chartData).metaData(groupMetadata).chartType('bar');
+        _selection.call(mainCanvasFn);
+       _selection.append('g').call(agios.groupsBar.bindData(groupMetadata));
 
-        var grouplength = groupHierachy.reduce((acc,d)=>acc*d.length,1);
-        
-
-        var sampleMap = d3.range(grouplength).reduce((acc,d,index)=>nestFn(groupFn(d)).reduce((a,e)=>{a[e]=index;return a},acc),{})
-        
-         
-        var mavenDataset = agios.groupBy(trellisGroups).key((d)=>sampleMap[d.sample_id]).entries(mavenData);
-        console.log(mavenDataset);
 	};
     
     exports.mavenData=function(data){

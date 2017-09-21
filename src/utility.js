@@ -18,14 +18,15 @@ window.agios = (function(){
 		return nest.sortKeys(d3.ascending);
 	};
     //flaten NestData
-    exports.flatenNest = function (data,keys){
-        if (Array.isArray(data)) return {key:keys,values:data}
+    exports.flatenNest = function (data,keys=[]){
+        if (Array.isArray(data)) return [{key:keys,values:data}]
         else 
             {  
-               return Object.keys(data).reduce((acc,key)=>[...acc,...this.flatenNest(data[key],[])],[])
+               return Object.keys(data).reduce((acc,key)=>[...acc,...this.flatenNest(data[key],[...keys,key])],[])
             } 
     }
     
+        
     //get unique values array of give group name list
     exports.groupValue = function(dataset,groups){
     	return groups.map((d)=>dataset.map((s)=>s[d]).filter((v,i,self)=>self.indexOf(v)===i))
