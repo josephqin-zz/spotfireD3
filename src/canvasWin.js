@@ -11,7 +11,7 @@ agios.canvasWin=(function(){
 	function exports(_selection){
 		_selection.selectAll('*').remove();
 		//add title
-		var xMap = getMap(metaData[metaData.length-3].values);
+		var xMap = getMap(metaData[metaData.length-1].values);
 		var color = d3.scaleOrdinal().range(d3.schemeCategory20).domain(Object.values(xMap).filter((d,i,self)=>self.indexOf(d)===i))
 		var xScale = d3.scaleBand().rangeRound([0, width]).paddingInner(0.1).domain(d3.range(Object.keys(xMap).length));
 		

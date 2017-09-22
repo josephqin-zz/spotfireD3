@@ -25,7 +25,7 @@ agios.spotfirePanel = (function(){
 
         //get sample groups 
         var sampleGroups = agios.flatenNest(agios.groupBy(dataGroups).rollup((leave)=>leave.map((d)=>d.sample_id)).object(sampleData)).filter((d)=>!d.key.includes('null'));
-        console.log(sampleGroups)      
+              
         var groupMetadata = getGroupMetaData(dataGroups,sampleGroups)
               
         var sampleMap = getSampleMap(sampleGroups)
