@@ -1,23 +1,22 @@
 agios.groupsBar = (function(){
 	'use strict';
 	var metaData = new Array,
-		width = 1000;
-	var getMap = (data) => data.reduce((acc,d)=>d.values.reduce((a,t)=>{ a[t]=d.key ;return a},acc),{});
+		color = d3.scaleOrdinal().range(d3.schemeCategory20),
+		xScale = d3.scaleBand();
+	
 	var groupLine = (x1,x2) => 'M'+x1+' 0 v 5'+' H '+x2+' v -5';
 	function exports(_selection){
 		
 		_selection.selectAll('*').remove();
-		//add title
-		var xMap = getMap(metaData[metaData.length-1].values);
-		var color = d3.scaleOrdinal().range(d3.schemeCategory20).domain(Object.values(xMap).filter((d,i,self)=>self.indexOf(d)===i))
-		var xScale = d3.scaleBand().rangeRound([0, width]).paddingInner(0.1).domain(d3.range(Object.keys(xMap).length));
-        
+		
+		
+        // console.log(metaData)
         var svg =_selection.selectAll('g')
         		  .data(metaData)
         		  .enter()
         		  .append('g')
         		  .attr('id',(d,i)=>d.key)
-        		  .attr('transform',(d,i)=>d3.zoomIdentity.translate(0,(metaData.length-i)*20));
+        		  .attr('transform',(d,i)=>d3.zoomIdentity.translate(0,(metaData.length-i)*10+d3.sum(metaData.filter((t,index)=>index>i).map((t)=>t.values.map((s)=>s.key).reduce((acc,d)=>acc>=d.length?acc:d.length,0)))*6));
         		  
         		svg.selectAll('path')
 				  .data((d)=>d.values)
@@ -38,6 +37,8 @@ agios.groupsBar = (function(){
 						return -(xScale(d3.max(value.values))+xScale.bandwidth()+xScale(d3.min(value.values)))/2
 				   })
 				   .attr('x',10)
+				   .style('font-size','.6em')
+				   .style('font-family','Verdana')
 				   .style('fill',"#000000")
 				   .attr('transform','rotate(90)')
 				   .style('dominant-baseline','middle')
@@ -47,8 +48,22 @@ agios.groupsBar = (function(){
 	}
     exports.bindData = function (data){
 		if(!arguments.length) return metaData;
-		metaData = data;
+		metaData = data
+		
 		return this;
 	}
+ 	
+ 	exports.setXscale = function (fn){
+		if(!arguments.length) return xScale;
+		xScale = fn;
+		return this;
+	}
+
+	exports.setColor = function (fn){
+		if(!arguments.length) return color;
+		color = fn;
+		return this;
+	}
+
 	return exports;
 })()

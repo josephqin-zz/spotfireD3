@@ -27,16 +27,16 @@ agios.spotfirePanel = (function(){
         var sampleGroups = agios.flatenNest(agios.groupBy(dataGroups).rollup((leave)=>leave.map((d)=>d.sample_id)).object(sampleData)).filter((d)=>!d.key.includes('null'));
               
         var groupMetadata = getGroupMetaData(dataGroups,sampleGroups)
-              
+        console.log(sampleGroups)      
         var sampleMap = getSampleMap(sampleGroups)
         //get mavenData 
         
         
         var sampleIds = sampleGroups.reduce((acc,d)=>[...acc,...d.values],[])
         var chartData = agios.groupBy(trellisGroups).key((d)=>sampleMap[d.sample_id]).rollup((leave)=>{return {y:rollupFn(leave),peak_id:leave.map((d)=>d.peak_id)}}).entries(mavenData.filter((d)=>sampleIds.includes(d.sample_id)))
-        var mainCanvasFn = agios.canvasWin.bindData(chartData).metaData(groupMetadata).chartType('bar');
-        _selection.call(mainCanvasFn);
-       _selection.append('g').call(agios.groupsBar.bindData(groupMetadata));
+        var uiFn = agios.spotfireUI.bindData(chartData).metaData(groupMetadata).chartType('bar');
+        _selection.call(uiFn);
+       
 
 	};
     
