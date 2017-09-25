@@ -18,7 +18,7 @@ agios.legendBar = (function(){
 					d3.select(this).append('text')
 								  .text(d.name)
 								  // .style('fill',textColor)
-								  .style('font-size',textsize*1.5)	
+								  .style('font-size',textsize*1.5>16?16:textsize*1.5)	
 						    	  .attr('x',d.width/2)
 						    	  .attr('y',d.height/2)
 						          .style('dominant-baseline','middle')

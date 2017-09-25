@@ -13,7 +13,7 @@ agios.canvasWin=(function(){
 	function exports(_selection){
 		_selection.selectAll('*').remove();
 		//yValue
-		var width = d3.max(xScale.range())
+		var width = 1000;
 		var yScale = d3.scaleLinear().range([height-20,0]).domain([0,d3.max(dataSet.values.map((t)=>t.value.y))])
 	    var yAxis = d3.axisRight(yScale).ticks(5).tickFormat(d3.format(".2s"));
 		
@@ -50,8 +50,8 @@ agios.canvasWin=(function(){
 			    .enter()
 				.append('rect')
 				.style("fill", (t)=>color(t.key))
-				.attr("x", (t)=> xScale(t.key))
-				.attr("width", xScale.bandwidth())
+				.attr("x", (t)=> xScale(t.key).x1)
+				.attr("width", (t)=>xScale(t.key).x2-xScale(t.key).x1)
 				.attr("y", (t)=> yScale(t.value.y))
 				.attr("height", (t)=> height-20-yScale(t.value.y))
 				.on('click',clickEventFn);

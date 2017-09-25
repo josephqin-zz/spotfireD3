@@ -10,10 +10,11 @@ agios.spotfireUI = (function(){
 		curIndex = 0,
 		dataLength = 0;
 	//private fun
-	var getXscaleFn = (xmap) => d3.scaleBand().rangeRound([0, width]).paddingInner(0.1).domain(d3.range(Object.keys(xmap).length))
+	var getXscaleFn = (xmap) => d3.scaleBand().range([0, width]).paddingInner(0.1).domain(d3.range(Object.keys(xmap).length))
     var getColorFn = (xmap) => d3.scaleOrdinal().range(d3.schemeCategory20).domain(Object.values(xmap).filter((d,i,self)=>self.indexOf(d)===i))
     var getMap = (data) => data.reduce((acc,d,i)=>{acc[i]=d.key;return acc},{});
 	var getLegendData = (colorFn) => [...colorFn.domain()].map((c,i,self)=>{return {name:c,color:colorFn(c),width:width/self.length,height:cellHeight}})
+
 	function exports(_selection){
 	_selection.selectAll('*').remove();
 	//workflow
@@ -25,17 +26,27 @@ agios.spotfireUI = (function(){
     var groupBar = _selection.append('g').attr('id','groupBar').attr('transform',d3.zoomIdentity.translate(0,height+cellHeight))	
     var lineView = _selection.append('g').attr('id','lineView').attr('transform',d3.zoomIdentity.translate(width+40,cellHeight))
     //prepare meta configration
-    
-    var xMap = getMap(metaData[metaData.length-1].values);
+    var xGroup = metaData[metaData.length-1].values
+    var xMap = getMap(xGroup);
     var colorBase = getColorFn(xMap);
     var color = (key)=>colorBase(xMap[key]);
-    var xScale = getXscaleFn(xMap);
+    var xScaleFn = getXscaleFn(xMap);
+    var newMap = xGroup.reduce((acc,d,i)=>{
+    	let w = xScaleFn.bandwidth()/d.values.length;
+    	d.values.reduce((a,t,j)=>{
+    		     a[t]={x1:xScaleFn(i)+w*j,x2:xScaleFn(i)+w*(j+1)};
+    		     return a;
+    		},acc)
+    	return acc;
+    },{}) 
     
-    // console.log()
+    
+    
+
     
     //build UI fn
-    var mainCanvasFn = agios.canvasWin.bindData(dataSet[curIndex]).chartType('bar').setColor(color).setXscale(xScale).setHeight(height).clickEvent(function(d,i){dispatcher.call('lineUI',this,d)});
-    var groupBarFn = agios.groupsBar.bindData(metaData).setColor(color).setXscale(xScale);
+    var mainCanvasFn = agios.canvasWin.bindData(dataSet[curIndex]).chartType('bar').setColor(color).setXscale(newScale).setHeight(height).clickEvent(function(d,i){dispatcher.call('lineUI',this,d)});
+    var groupBarFn = agios.groupsBar.bindData(metaData.slice(0,metaData.length-1)).setColor(color).setXscale(newScale);
     var lineFn = agios.linePlot
     var legendFn = agios.legendBar.bindData(getLegendData(colorBase));
     //rende UI

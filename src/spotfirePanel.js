@@ -7,6 +7,7 @@ agios.spotfirePanel = (function(){
         width = 1000,
         height = 500,
         rollupFn = (leave)=>d3.mean(leave.map((d)=>d.areatop));
+    
     //get group hierachy info for xAxis render
     var getGroupMetaData = (groupList,sampleGroups) => groupList.map((g,i)=>{return {
             key:g,
@@ -17,6 +18,7 @@ agios.spotfirePanel = (function(){
                                 [])
             } 
         })
+    
     //get sampeMap index is the unique group and name will keep the name to identify which level of the groups to determine the color.
     var getSampleMap = (sampleGroups) => sampleGroups.reduce((acc,d,i)=>d.values.reduce((a,v)=>{ a[v]=i;return a },acc),{})
 
@@ -25,7 +27,7 @@ agios.spotfirePanel = (function(){
 
         //get sample groups 
         var sampleGroups = agios.flatenNest(agios.groupBy(dataGroups).rollup((leave)=>leave.map((d)=>d.sample_id)).object(sampleData)).filter((d)=>!d.key.includes('null'));
-              
+          
         var groupMetadata = getGroupMetaData(dataGroups,sampleGroups)
               
         var sampleMap = getSampleMap(sampleGroups)
@@ -39,7 +41,8 @@ agios.spotfirePanel = (function(){
        
 
 	};
-    
+
+    //setter and getter
     exports.mavenData=function(data){
     	if(!arguments.length) return mavenData;
     	mavenData = data;

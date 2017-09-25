@@ -23,7 +23,7 @@ agios.groupsBar = (function(){
 				  .enter()
 				  .append('path')
 				  .attr('d',(value,i)=>{
-						return groupLine(xScale(d3.min(value.values)),xScale(d3.max(value.values))+xScale.bandwidth())
+						return groupLine(xScale(d3.min(value.values)).x1,xScale(d3.max(value.values)).x2)
 				   })
 				  .attr('fill',"none")
 	              .attr("stroke","#000");
@@ -34,7 +34,7 @@ agios.groupsBar = (function(){
 	               .append('text')
 	               .text((d)=>d.key)
 	               .attr('y',(value,i)=>{
-						return -(xScale(d3.max(value.values))+xScale.bandwidth()+xScale(d3.min(value.values)))/2
+						return -(xScale(d3.max(value.values)).x1+xScale(d3.min(value.values)).x2)/2
 				   })
 				   .attr('x',10)
 				   .style('font-size','.6em')
