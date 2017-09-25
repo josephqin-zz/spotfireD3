@@ -27,7 +27,7 @@ agios.spotfirePanel = (function(){
         var sampleGroups = agios.flatenNest(agios.groupBy(dataGroups).rollup((leave)=>leave.map((d)=>d.sample_id)).object(sampleData)).filter((d)=>!d.key.includes('null'));
               
         var groupMetadata = getGroupMetaData(dataGroups,sampleGroups)
-        console.log(sampleGroups)      
+              
         var sampleMap = getSampleMap(sampleGroups)
         //get mavenData 
         

@@ -25,13 +25,12 @@ agios.spotfireUI = (function(){
     var groupBar = _selection.append('g').attr('id','groupBar').attr('transform',d3.zoomIdentity.translate(0,height+cellHeight))	
     var lineView = _selection.append('g').attr('id','lineView').attr('transform',d3.zoomIdentity.translate(width+40,cellHeight))
     //prepare meta configration
-    // metaData = metaData.filter((d,i,self)=>i<self.length-1)
-    // console.log(metaData)
+    
     var xMap = getMap(metaData[metaData.length-1].values);
     var colorBase = getColorFn(xMap);
     var color = (key)=>colorBase(xMap[key]);
     var xScale = getXscaleFn(xMap);
-    // console.log(xMap)
+    
     // console.log()
     
     //build UI fn
