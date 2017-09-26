@@ -1,10 +1,10 @@
 agios.groupsBar = (function(){
 	'use strict';
-	var metaData = new Array,
-		color = d3.scaleOrdinal().range(d3.schemeCategory20),
-		xScale = d3.scaleBand();
+	var metaData = new Array;
+		
 	
 	var groupLine = (x1,x2) => 'M'+x1+' 0 v 5'+' H '+x2+' v -5';
+
 	function exports(_selection){
 		
 		_selection.selectAll('*').remove();
@@ -23,7 +23,7 @@ agios.groupsBar = (function(){
 				  .enter()
 				  .append('path')
 				  .attr('d',(value,i)=>{
-						return groupLine(xScale(d3.min(value.values)).x1,xScale(d3.max(value.values)).x2)
+						return groupLine(value.x1,value.x2)
 				   })
 				  .attr('fill',"none")
 	              .attr("stroke","#000");
@@ -34,7 +34,7 @@ agios.groupsBar = (function(){
 	               .append('text')
 	               .text((d)=>d.key)
 	               .attr('y',(value,i)=>{
-						return -(xScale(d3.max(value.values)).x1+xScale(d3.min(value.values)).x2)/2
+						return -(value.x1+value.x2)/2
 				   })
 				   .attr('x',10)
 				   .style('font-size','.6em')

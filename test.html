@@ -3,7 +3,7 @@
 		<script src="d3/d3.min.js"></script>
 		<script src="src/utility.js"></script>
 		<script src="src/spotfirePanel.js"></script>
-		<script src="src/canvasWin.js"></script>
+		<script src="src/plotCanvas.js"></script>
 		<script src="src/groupsBar.js"></script>
 		<script src="src/linePlot.js"></script>
 		<script src="src/legendBar.js"></script>
@@ -34,7 +34,7 @@
 	<script>
     var svg = d3.select('#UI');
     d3.json('test.txt',function(data){
-    	var penalFn= agios.spotfirePanel.mavenData(data.values).sampleData(data.samples).trellisGroups(['compound']).dataGroups(['reagent','cell_name','stime']);
+    	var penalFn= agios.spotfirePanel.mavenData(data.values).sampleData(data.samples).trellisGroups(['compound']).dataGroups(['stime','cell_name','reagent']);
 
     	svg.call(penalFn);
     });

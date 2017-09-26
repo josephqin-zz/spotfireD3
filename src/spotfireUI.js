@@ -2,68 +2,125 @@ agios.spotfireUI = (function(){
 	'use strict';
 	var dataSet = new Array,
 	    metaData = new Array,
-	    chartType = 'bar',
-		width = 500,
-		height = 300,
+	    state = {curIndex:0,chartType:'bar'},
+		width = 800,
+		height = 270,
 		cellHeight = 20,
 		grinds = {row:2,col:1},
-		curIndex = 0,
 		dataLength = 0;
-	//private fun
-	var getXscaleFn = (xmap) => d3.scaleBand().range([0, width]).paddingInner(0.1).domain(d3.range(Object.keys(xmap).length))
-    var getColorFn = (xmap) => d3.scaleOrdinal().range(d3.schemeCategory20).domain(Object.values(xmap).filter((d,i,self)=>self.indexOf(d)===i))
-    var getMap = (data) => data.reduce((acc,d,i)=>{acc[i]=d.key;return acc},{});
-	var getLegendData = (colorFn) => [...colorFn.domain()].map((c,i,self)=>{return {name:c,color:colorFn(c),width:width/self.length,height:cellHeight}})
+	
+	//private functions
+	var getMap = (data) => data.reduce((acc,d,i)=>{acc[i]=d.key;return acc},{});
+	
 
 	function exports(_selection){
 	_selection.selectAll('*').remove();
-	//workflow
 	
-	var dispatcher = d3.dispatch('lineUI','updateMetaMap')
+	//workflow definition
+	
+	var dispatcher = d3.dispatch('chromagraphUI','updateUI')
+	
 	//create page layout
-	var legendBar = _selection.append('g').attr('id','legendBar')
-    var mainCanvas = _selection.append('g').attr('id','mainCanvas').attr('transform',d3.zoomIdentity.translate(0,cellHeight))
-    var groupBar = _selection.append('g').attr('id','groupBar').attr('transform',d3.zoomIdentity.translate(0,height+cellHeight))	
-    var lineView = _selection.append('g').attr('id','lineView').attr('transform',d3.zoomIdentity.translate(width+40,cellHeight))
-    //prepare meta configration
-    var xGroup = metaData[metaData.length-1].values
-    var xMap = getMap(xGroup);
-    var colorBase = getColorFn(xMap);
-    var color = (key)=>colorBase(xMap[key]);
-    var xScaleFn = getXscaleFn(xMap);
-    var newMap = xGroup.reduce((acc,d,i)=>{
-    	let w = xScaleFn.bandwidth()/d.values.length;
-    	d.values.reduce((a,t,j)=>{
-    		     a[t]={x1:xScaleFn(i)+w*j,x2:xScaleFn(i)+w*(j+1)};
-    		     return a;
-    		},acc)
-    	return acc;
-    },{}) 
+	var legendBar = _selection.append('g').attr('id','legendBar');
+    var mainCanvas = _selection.append('g').attr('id','mainCanvas').attr('transform',d3.zoomIdentity.translate(0,cellHeight));
+    var groupBar = _selection.append('g').attr('id','groupBar').attr('transform',d3.zoomIdentity.translate(0,height+cellHeight));	
+    var lineView = _selection.append('g').attr('id','lineView').attr('transform',d3.zoomIdentity.translate(width+40,cellHeight));
+  
+    //build UI fn 
+    // var UIfn = {};
+	   //  UIfn.mainCanvasFn = agios.canvasWin.setHeight(height);
+	   //  UIfn.groupBarFn = agios.groupsBar;
+	   //  ;
+	   //  UIfn.legendFn = agios.legendBar;
     
-    
+    //update UI
+    dispatcher.on('updateUI',function(newState){
+
+       let chartData = Object.assign(dataSet[newState.curIndex]);
+       let colorGroup = metaData[metaData.length-1].values;
+       let xGroup = [...metaData[metaData.length-1].values];
+       let xcMap = getMap(xGroup);// each section:bar_rec/pie_seg has unique x_group_id but share same group_name/color this map to mentain this Info
+       
+       if(newState.chartType!=='bar') xGroup = [...metaData[metaData.length-2].values];
+        
+       let color =  d3.scaleOrdinal().range(d3.schemeCategory20).domain(colorGroup.map((d)=>d.key).filter((d,i,self)=>self.indexOf(d)===i))
+       let legendData = colorGroup.map((d)=>d.key).filter((d,i,self)=>self.indexOf(d)===i).map((c,i,self)=>{return {name:c,color:color(c),width:width/self.length,height:cellHeight}})
+       let xScale = d3.scaleBand().range([0, width]).paddingInner(0.1).domain(d3.range(xGroup.map((d)=>d.key).length))
+       let newMap = xGroup.reduce((acc,d,i)=>{
+			    	let w = xScale.bandwidth()/d.values.length;
+			    	d.values.reduce((a,t,j)=>{
+			    		     a[t]={x1:xScale(i)+w*j,x2:xScale(i)+w*(j+1)};
+			    		     return a;
+			    		},acc)
+			    	return acc;
+			    },{});
+                
+        let groupbarData = metaData.filter((d,i,self)=>i<self.length-1)
+                        .map((d)=>{
+                            let item = {};
+                            Object.assign(item,d);
+                            item.values = d.values.map((t)=>{ return {
+                                key:t.key,
+                                x1: newMap[d3.min(t.values)].x1,
+                                x2: newMap[d3.max(t.values)].x2,
+                                values:[...t.values] }
+
+                            });
+                            return item;
+                        });
+
+        let yScale = d3.scaleLinear().range([height-25,0])
+
+        chartData.width=width;
+        if(newState.chartType==='stackbar'){
+        chartData.values = xGroup.reduce((acc,g,i)=>{
+            let rows = chartData.values.filter((d)=>g.values.includes(+d.key)).sort((a,b)=>+a.key-(+b.key)) 
+            let sum = rows.reduce((acc,t)=>{ t.prevous = acc ; return t.value.y+acc;},0)
+            rows.forEach((v)=>{
+                v.sum = sum;
+                v.x = xScale(i);
+                v.width = xScale.bandwidth();  })
+            return [...acc,...rows]
+        },[])
+            
+        yScale.domain([0,d3.max(chartData.values.map((t)=>t.sum))])
+        chartData.values.forEach((d,i)=>{
+            
+            d.y = yScale(d.value.y+d.prevous);
+            d.height = height-25-yScale(d.value.y);
+            d.color = color(xcMap[d.key]);
+        })
+        
+
+
+        }else{
+        yScale.domain([0,d3.max(chartData.values.map((t)=>t.value.y))])
+        chartData.values.forEach((d,i)=>{
+            d.x = newMap[d.key].x1;
+            d.width = newMap[d.key].x2-newMap[d.key].x1;
+            d.y = yScale(d.value.y);
+            d.height = height-25-yScale(d.value.y);
+            d.color = color(xcMap[d.key]);
+        }) 
+        }
+        var yAxis = d3.axisRight(yScale).ticks(5).tickFormat(d3.format(".2s")).tickSize(width);
+        
+        
+        
+     	//render UI;
+     	mainCanvas.call(agios.plotCanvas.bindData(chartData).yAxisFn(yAxis).clickEvent(function(d,i){dispatcher.call('chromagraphUI',this,d)}));
+     	legendBar.call(agios.legendBar.bindData(legendData));
+     	groupBar.call(agios.groupsBar.bindData(groupbarData));
+        
+
+    });
+    	
+    //Chart type Change
     
 
-    
-    //build UI fn
-    var mainCanvasFn = agios.canvasWin.bindData(dataSet[curIndex]).chartType('bar').setColor(color).setXscale(newScale).setHeight(height).clickEvent(function(d,i){dispatcher.call('lineUI',this,d)});
-    var groupBarFn = agios.groupsBar.bindData(metaData.slice(0,metaData.length-1)).setColor(color).setXscale(newScale);
-    var lineFn = agios.linePlot
-    var legendFn = agios.legendBar.bindData(getLegendData(colorBase));
-    //rende UI
-    
-    // mainCanvas.call(mainCanvasFn);
-    groupBar.call(groupBarFn);
-    legendBar.call(legendFn);
-    _selection.on('mousewheel.zoom',function(d){
-        lineView.selectAll('*').remove();
-    	if(d3.event.wheelDelta>0) curIndex = curIndex+1<dataLength?curIndex+1:dataLength-1;
-    	else curIndex = curIndex-1>=0?curIndex-1:0;
-    	mainCanvas.call(mainCanvasFn.bindData(dataSet[curIndex]));
-    })
-
-    // dispatcher.on('line')
-
-    dispatcher.on('lineUI',function(rawdata){
+   
+    //render chromagraphy UI
+    dispatcher.on('chromagraphUI',function(rawdata){
         	lineView.selectAll('*').remove();
         	//get peakIds from choosen group
         	
@@ -79,10 +136,21 @@ agios.spotfireUI = (function(){
             				  	}).filter((c)=>c.x>=Number(d.min_rt)&&c.x<=Number(d.max_rt))
             				  	return line;
             				  });
-        		lineView.call(lineFn.bindData(lines));
+        		lineView.call(agios.linePlot.bindData(lines));
         	})
         	
-        })
+        });
+
+     //mousewheel behavior
+    
+    _selection.on('mousewheel.zoom',function(d){
+        lineView.selectAll('*').remove();
+        let cur = state.curIndex;
+    	if(d3.event.wheelDelta>0) cur = cur+1<dataLength?cur+1:dataLength-1;
+    	else cur = cur-1>=0?cur-1:0;
+    	Object.assign(state,{curIndex:cur});
+    	dispatcher.call('updateUI',this,state);
+    });
 
 	}
     
@@ -90,21 +158,22 @@ agios.spotfireUI = (function(){
 	exports.bindData = function (data){
 		if(!arguments.length) return dataSet;
 		dataSet = data;
-		curIndex = 0;
+		state.curIndex=0;
 		dataLength = data.length;
 		return this;
 	}
+
 	exports.metaData = function (data){
 		if(!arguments.length) return metaData;
 		metaData = data;
 		return this;
 	}
+
 	exports.chartType = function (data){
-		if(!arguments.length) return chartType;
-		chartType = data;
+		if(!arguments.length) return state.chartType;
+		state.chartType = data;
 		return this;
 	}
 
-
-	return exports
+	return exports;
 	})()
