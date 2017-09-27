@@ -34,7 +34,7 @@
 	<script>
     var svg = d3.select('#UI');
     d3.json('test.txt',function(data){
-    	var penalFn= agios.spotfirePanel.mavenData(data.values).sampleData(data.samples).trellisGroups(['compound']).dataGroups(['stime','cell_name','reagent']);
+    	var penalFn= agios.spotfirePanel.mavenData(data.values).sampleData(data.samples).trellisGroups(['compound']).dataGroups(['stime','cell_name','reagent','complex']);
 
     	svg.call(penalFn);
     });

@@ -37,7 +37,7 @@ agios.spotfirePanel = (function(){
         var sampleIds = sampleGroups.reduce((acc,d)=>[...acc,...d.values],[])
         var chartData = agios.groupBy(trellisGroups).key((d)=>sampleMap[d.sample_id]).rollup((leave)=>{return {y:rollupFn(leave),peak_id:leave.map((d)=>d.peak_id)}}).entries(mavenData.filter((d)=>sampleIds.includes(d.sample_id)))
        
-        var uiFn = agios.spotfireUI.bindData(chartData).metaData(groupMetadata).chartType('stackbar');
+        var uiFn = agios.spotfireUI.bindData(chartData).metaData(groupMetadata);
         _selection.call(uiFn);
        
 

@@ -33,16 +33,19 @@ agios.plotCanvas=(function(){
 			    .attr("opacity",0.6)
 			    .call(yAxis)
 			   
-
-		chart.selectAll('rect')
+        
+		chart.append("g").attr('id','mainParts')
+				.selectAll('path')
 				.data(dataSet.values)
 			    .enter()
-				.append('rect')
+				.append('path')
+				.attr('transform',(d)=>d3.zoomIdentity.translate(d.x,d.y))
 				.style("fill", (t)=>t.color)
-				.attr("x", (t)=> t.x)
-				.attr("width", (t)=>t.width)
-				.attr("height",(t)=>t.height)
-				.attr("y", (t)=> t.y)
+				.attr("d",(t)=>t.path)
+				// .attr("x", (t)=> t.x)
+				// .attr("width", (t)=>t.width)
+				// .attr("height",(t)=>t.height)
+				// .attr("y", (t)=> t.y)
 				.on('click',clickEventFn);
 					
 	}
