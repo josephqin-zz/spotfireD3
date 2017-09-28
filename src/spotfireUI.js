@@ -13,7 +13,7 @@ agios.spotfireUI = (function(){
 	var getMap = (data) => data.reduce((acc,d,i)=>{acc[i]=d.key;return acc},{});
 	//draw rect
     var drawRect = (x,y,width,height) => 'M'+x+' '+y+' v '+height+' h '+width+' v -'+height+' Z';
-
+    var drawCircle = (x,y,radius) => 'M '+(0-radius)+' '+y+' a '+radius+' '+radius+', 0, 1, 0, '+(radius*2)+' '+y+' '+'a '+radius+' '+radius+', 0, 1, 0, '+(-radius*2)+' '+y;
 	function exports(_selection){
 	_selection.selectAll('*').remove();
 	
@@ -40,7 +40,8 @@ agios.spotfireUI = (function(){
         
        //metaData = [root-group,first-group,...,lowest-group]
        //dupicate RowData to chartData 
-       let chartData = Object.assign(dataSet[newState.curIndex]);
+       let chartData = {}
+       Object.assign(chartData,dataSet[newState.curIndex]);
        
 
        //color function and legend colors according to lowest group categories
@@ -55,7 +56,7 @@ agios.spotfireUI = (function(){
        //stacked style plots use the second last  group to define x-coordinate for each section
        if(newState.chartType.indexOf('stack')!==-1) xGroup = [...metaData[metaData.length-2].values];
        //pie chart/line chart use the tird last group to define x-coordinate for each group
-       if(newState.chartType.indexOf('group')!==-1) xGroup = [...metaData[metaData.length-3].values];
+       if(newState.chartType.indexOf('pie')!==-1) xGroup = [...metaData[metaData.length-3].values];
         
        //get x-coordinate of each section 
        let xScale = d3.scaleBand().range([0, width]).paddingInner(0.1).domain(d3.range(xGroup.map((d)=>d.key).length))
@@ -86,11 +87,12 @@ agios.spotfireUI = (function(){
 
         //according to chartType to recalculate Path information for each section.
         
-        if(newState.chartType==='stack'){
+        if(newState.chartType==='stackbar'){
             chartData.values = xGroup.reduce((acc,g,i)=>{
                 let rows = chartData.values.filter((d)=>g.values.includes(+d.key)).sort((a,b)=>+a.key-(+b.key)) 
                 let sum = rows.reduce((acc,t)=>{ t.prevous = acc ; return t.value.y+acc;},0)
                 rows.forEach((v)=>{
+                    v.type='stack';
                     v.sum = sum;
                     v.x = xScale(i);
                     v.width = xScale.bandwidth();  })
@@ -118,10 +120,10 @@ agios.spotfireUI = (function(){
                 d.height = height-25-yScale(d.value.y);
                 d.path = drawRect(0,0,d.width,d.height)
                 d.color = color(xcMap[d.key]);
+                d.type='bar';
             }) 
-        }else {
+        }else if(newState.chartType==='grouppie'){
            let yMap = getMap(metaData[metaData.length-2].values);
-           
            yScale = d3.scaleBand().range([0,height-25]).domain(metaData[metaData.length-2].values.map((d)=>d.key).filter((d,i,self)=>self.indexOf(d)===i))
            yAxis = d3.axisRight(yScale).tickSize(width);
            let arc = d3.arc().innerRadius(0).outerRadius(d3.min([yScale.bandwidth(),xScale.bandwidth()])/2)
@@ -130,7 +132,6 @@ agios.spotfireUI = (function(){
                 a[v]=xScale(i)+xScale.bandwidth()/2;
                 return a;
            },acc),{})
-           
            chartData.values = metaData[metaData.length-2].values.reduce((acc,g,i)=>{ 
                 
                 let rows = chartData.values.filter((d)=>g.values.includes(+d.key)).sort((a,b)=>+a.key-(+b.key)) 
@@ -141,12 +142,54 @@ agios.spotfireUI = (function(){
                     v.y = yScale(yMap[i])+yScale.bandwidth()/2;
                     v.color = color(xcMap[v.key]);
                     v.path = pathMap[index];
+                    v.type = 'pie';
                     })
                 return [...acc,...rows]
             },[])
 
            
+        }else{
+
+            yScale.domain([0,d3.max(chartData.values.map((t)=>t.value.y))])
+            yAxis = d3.axisRight(yScale).ticks(5).tickFormat(d3.format(".2s")).tickSize(width);
+            chartData.values = xGroup.reduce((acc,g,i)=>{
+                let rows = chartData.values.filter((d)=>g.values.includes(+d.key)).sort((a,b)=>+a.key-(+b.key)) 
+               
+                rows.forEach((v)=>{
+                    v.type='circle';
+                    
+                    v.x = xScale(i)+xScale.bandwidth()/2;
+                    v.width = xScale.bandwidth();  })
+                return [...acc,...rows]
+            },[])
+            
+            
            
+            chartData.values.forEach((d,i)=>{
+                    
+                    d.y = yScale(d.value.y);
+                    d.height = height-25-yScale(d.value.y);
+                    d.path = drawCircle(0,0,d.width*0.1)
+                    d.color = color(xcMap[d.key]);
+                })
+            //add line
+            let linefn = d3.line().x((d)=>d.x).y((d)=>d.y)
+            let lines = d3.nest().key((d)=>xcMap[d.key]).entries(chartData.values)
+            let paths = lines.map((d)=>d.values).map(linefn)
+            
+           chartData.values = [...lines.map((l,i)=>{
+                let item = {}
+                item.key = l.key;
+                item.color = color(l.key);
+                item.value = l.values.reduce((acc,d)=>{ acc.peak_id = [...acc.peak_id ,...d.value.peak_id];return acc },{peak_id:[]});
+                item.x = 0;
+                item.y = 0;
+                item.type = 'line';
+                item.path = paths[i];
+                return item;
+            }),...chartData.values];
+           yAxis = d3.axisRight(yScale).ticks(5).tickFormat(d3.format(".2s")).tickSize(width);
+
 
 
         }
@@ -208,7 +251,7 @@ agios.spotfireUI = (function(){
     _selection.on('mousewheel.zoom',function(d){
         lineView.selectAll('*').remove();
         let cur = state.curIndex;
-    	if(d3.event.wheelDelta>0) cur = cur+1<dataLength?cur+1:dataLength-1;
+    	if(d3.event.wheelDelta<0) cur = cur+1<dataLength?cur+1:dataLength-1;
     	else cur = cur-1>=0?cur-1:0;
     	Object.assign(state,{curIndex:cur});
     	dispatcher.call('updateUI',this,state);
@@ -219,9 +262,9 @@ agios.spotfireUI = (function(){
     //render left control the ChartType;
     let tabHeight = height*0.7*0.25
     var chartNames = [{name:'bar',type:'bar'},
-                      {name:'stack',type:'stack'},
+                      {name:'stack',type:'stackbar'},
                       {name:'pie',type:'grouppie'},
-                      {name:'line',type:'groupline'}];
+                      {name:'line',type:'stackline'}];
     var colorPalletes = ['#1d2120','#5a5c51','#ba9077','#729f98'];
     leftBar.selectAll('g')
            .data(chartNames)
