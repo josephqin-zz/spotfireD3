@@ -6,9 +6,10 @@ agios.spotfirePanel = (function(){
 		dataGroups = new Array,
         width = 1000,
         height = 500,
-        rollupFn = (leave)=>d3.mean(leave.map((d)=>d.areatop));
+        rollupFn = (leave)=>d3.mean(leave.map((d)=>d.areatop)),
+        stdFn = (leave)=>d3.deviation(leave.map((d)=>d.areatop));
     
-    //get group hierachy info for xAxis render
+    //get group hierachy info
     var getGroupMetaData = (groupList,sampleGroups) => groupList.map((g,i)=>{return {
             key:g,
             values:sampleGroups.map((t)=>t.key.filter((k,index)=>index<=i))
@@ -23,7 +24,13 @@ agios.spotfirePanel = (function(){
     var getSampleMap = (sampleGroups) => sampleGroups.reduce((acc,d,i)=>d.values.reduce((a,v)=>{ a[v]=i;return a },acc),{})
 
 	function exports(_selection){
+        _selection.selectAll('*').remove();
+
         
+        var menuBar = _selection.append('g').attr('id','menuBar');
+        var plotUI = _selection.append('g').attr('id','plotUI');
+
+
 
         //get sample groups 
         var sampleGroups = agios.flatenNest(agios.groupBy(dataGroups).rollup((leave)=>leave.map((d)=>d.sample_id)).object(sampleData)).filter((d)=>!d.key.includes('null'));
@@ -35,10 +42,10 @@ agios.spotfirePanel = (function(){
         
         
         var sampleIds = sampleGroups.reduce((acc,d)=>[...acc,...d.values],[])
-        var chartData = agios.groupBy(trellisGroups).key((d)=>sampleMap[d.sample_id]).rollup((leave)=>{return {y:rollupFn(leave),peak_id:leave.map((d)=>d.peak_id)}}).entries(mavenData.filter((d)=>sampleIds.includes(d.sample_id)))
-       
+        var chartData = agios.groupBy(trellisGroups).key((d)=>sampleMap[d.sample_id]).rollup((leave)=>{return {y:rollupFn(leave),std:stdFn(leave),peak_id:leave.map((d)=>d.peak_id)}}).entries(mavenData.filter((d)=>sampleIds.includes(d.sample_id)))
+        
         var uiFn = agios.spotfireUI.bindData(chartData).metaData(groupMetadata);
-        _selection.call(uiFn);
+        plotUI.call(uiFn);
        
 
 	};

@@ -2,7 +2,7 @@ agios.spotfireUI = (function(){
 	'use strict';
 	var dataSet = new Array,
 	    metaData = new Array,
-	    state = {curIndex:0,chartType:'bar'},
+	    state = {curIndex:0,chartType:'bar',std:false},
 		width = 800,
 		height = 270,
 		cellHeight = 20,
@@ -12,8 +12,8 @@ agios.spotfireUI = (function(){
 	//private functions
 	var getMap = (data) => data.reduce((acc,d,i)=>{acc[i]=d.key;return acc},{});
 	//draw rect
-    var drawRect = (x,y,width,height) => 'M'+x+' '+y+' v '+height+' h '+width+' v -'+height+' Z';
-    var drawCircle = (x,y,radius) => 'M '+(0-radius)+' '+y+' a '+radius+' '+radius+', 0, 1, 0, '+(radius*2)+' '+y+' '+'a '+radius+' '+radius+', 0, 1, 0, '+(-radius*2)+' '+y;
+  var drawRect = (x,y,width,height) => 'M'+x+' '+y+' v '+height+' h '+width+' v -'+height+' Z';
+  var drawCircle = (x,y,radius) => 'M '+(0-radius)+' '+y+' a '+radius+' '+radius+', 0, 1, 0, '+(radius*2)+' '+y+' '+'a '+radius+' '+radius+', 0, 1, 0, '+(-radius*2)+' '+y;
 	function exports(_selection){
 	_selection.selectAll('*').remove();
 	
@@ -23,17 +23,24 @@ agios.spotfireUI = (function(){
 	
 	//create page layout
     var leftBar = _selection.append('g').attr('id','leftBar')
-	var legendBar = _selection.append('g').attr('id','legendBar').attr('transform',d3.zoomIdentity.translate(30,0));;
+	  var legendBar = _selection.append('g').attr('id','legendBar').attr('transform',d3.zoomIdentity.translate(30,0));;
     var mainCanvas = _selection.append('g').attr('id','mainCanvas').attr('transform',d3.zoomIdentity.translate(30,cellHeight));
     var groupBar = _selection.append('g').attr('id','groupBar').attr('transform',d3.zoomIdentity.translate(30,height+cellHeight));	
     var lineView = _selection.append('g').attr('id','lineView').attr('transform',d3.zoomIdentity.translate(width+40+30,cellHeight));
     
-    //build UI fn 
-    // var UIfn = {};
-	   //  UIfn.mainCanvasFn = agios.canvasWin.setHeight(height);
-	   //  UIfn.groupBarFn = agios.groupsBar;
-	   //  ;
-	   //  UIfn.legendFn = agios.legendBar;
+       
+    var controlData = (state)=>[{name:'bar',type:'bar',color:'#F9D5D3',selected:false},
+                  {name:'stack',type:'stackbar',color:'#ECA4A6',selected:false},
+                  {name:'pie',type:'grouppie',color:'#807F89',selected:false},
+                  {name:'line',type:'stackline',color:'#99A89E',selected:false},
+                  {name:'std',type:'std',color:'#BBC7BA',selected:false}].map((b)=>{
+                    let item = {}
+                    Object.assign(item,b)
+                    if (b.type === state.chartType) item.selected=true;
+                    if (state.std && b.type==='std') item.selected=true;
+                    return item;
+                  })
+    
     
     //update UI
     dispatcher.on('updateUI',function(newState){
@@ -111,7 +118,8 @@ agios.spotfireUI = (function(){
 
 
         }else if(newState.chartType==='bar'){
-            yScale.domain([0,d3.max(chartData.values.map((t)=>t.value.y))])
+
+            yScale.domain([0,d3.max(chartData.values.map((t)=>typeof t.value.std==='undefined'?t.value.y:t.value.std+t.value.y))])
             yAxis = d3.axisRight(yScale).ticks(5).tickFormat(d3.format(".2s")).tickSize(width);
             chartData.values.forEach((d,i)=>{
                 d.x = newMap[d.key].x1;
@@ -121,7 +129,23 @@ agios.spotfireUI = (function(){
                 d.path = drawRect(0,0,d.width,d.height)
                 d.color = color(xcMap[d.key]);
                 d.type='bar';
-            }) 
+            })
+            if(newState.std){
+              var stdCircle = chartData.values.filter((d)=>typeof d.value.std!=='undefined').map((d)=>{
+                
+                let stdHeight = height-25-yScale(d.value.std)
+                let item = {};
+                item.value = d.value;
+                item.type='line';
+                item.color='#929293';
+                item.x=d.x+d.width/2
+                item.y=d.y
+                item.path = 'M 0 '+(0-stdHeight)+' v '+stdHeight*2 + 'M'+(0-d.width*0.5/2)+' '+(0-stdHeight)+' h '+d.width*0.5+' M'+(0-d.width*0.5/2)+' '+stdHeight+' h '+d.width*0.5;
+                return item;
+              });
+              chartData.values = [...chartData.values,...stdCircle.filter((d)=>typeof d!=='undefined')];
+
+            } 
         }else if(newState.chartType==='grouppie'){
            let yMap = getMap(metaData[metaData.length-2].values);
            yScale = d3.scaleBand().range([0,height-25]).domain(metaData[metaData.length-2].values.map((d)=>d.key).filter((d,i,self)=>self.indexOf(d)===i))
@@ -150,7 +174,7 @@ agios.spotfireUI = (function(){
            
         }else{
 
-            yScale.domain([0,d3.max(chartData.values.map((t)=>t.value.y))])
+            yScale.domain([0,d3.max(chartData.values.map((t)=>typeof t.value.std==='undefined'?t.value.y:t.value.std+t.value.y))])
             yAxis = d3.axisRight(yScale).ticks(5).tickFormat(d3.format(".2s")).tickSize(width);
             chartData.values = xGroup.reduce((acc,g,i)=>{
                 let rows = chartData.values.filter((d)=>g.values.includes(+d.key)).sort((a,b)=>+a.key-(+b.key)) 
@@ -161,7 +185,8 @@ agios.spotfireUI = (function(){
                     v.x = xScale(i)+xScale.bandwidth()/2;
                     v.width = xScale.bandwidth();  })
                 return [...acc,...rows]
-            },[])
+        
+            },[]);
             
             
            
@@ -169,7 +194,7 @@ agios.spotfireUI = (function(){
                     
                     d.y = yScale(d.value.y);
                     d.height = height-25-yScale(d.value.y);
-                    d.path = drawCircle(0,0,d.width*0.1)
+                    d.path = drawCircle(0,0,d.width*0.1/2)
                     d.color = color(xcMap[d.key]);
                 })
             //add line
@@ -188,10 +213,23 @@ agios.spotfireUI = (function(){
                 item.path = paths[i];
                 return item;
             }),...chartData.values];
+           if(newState.std){
+              var stdCircle = chartData.values.filter((d)=>d.type!=='line'&& typeof d.value.std!=='undefined').map((d)=>{
+                
+                let stdHeight = height-25-yScale(d.value.std)
+                let item = {};
+                item.value = d.value;
+                item.type='line';
+                item.color='#929293';
+                item.x=d.x
+                item.y=d.y
+                item.path = 'M 0 '+(0-stdHeight)+' v '+stdHeight*2 + 'M'+(0-d.width*0.1/2)+' '+(0-stdHeight)+' h '+d.width*0.1+' M'+(0-d.width*0.1/2)+' '+stdHeight+' h '+d.width*0.1;
+                return item;
+              });
+              chartData.values = [...chartData.values,...stdCircle.filter((d)=>typeof d!=='undefined')];
+
+            }
            yAxis = d3.axisRight(yScale).ticks(5).tickFormat(d3.format(".2s")).tickSize(width);
-
-
-
         }
         
 
@@ -213,10 +251,11 @@ agios.spotfireUI = (function(){
         
         
      	//render UI;
+      
      	mainCanvas.call(agios.plotCanvas.bindData(chartData).yAxisFn(yAxis).clickEvent(function(d,i){dispatcher.call('chromagraphUI',this,d)}));
      	legendBar.call(agios.legendBar.bindData(legendData));
      	groupBar.call(agios.groupsBar.bindData(groupbarData));
-        
+      leftBar.call(agios.controlBar.setHeight(height).bindData(controlData(newState)).clickEvent(function(d,i){ d.type==='std'?state.std=!state.std:state.chartType=d.type;dispatcher.call('updateUI',this,state); }))  
 
     });
     	
@@ -259,40 +298,7 @@ agios.spotfireUI = (function(){
 
     //default view
     dispatcher.call('updateUI',this,state);
-    //render left control the ChartType;
-    let tabHeight = height*0.7*0.25
-    var chartNames = [{name:'bar',type:'bar'},
-                      {name:'stack',type:'stackbar'},
-                      {name:'pie',type:'grouppie'},
-                      {name:'line',type:'stackline'}];
-    var colorPalletes = ['#1d2120','#5a5c51','#ba9077','#729f98'];
-    leftBar.selectAll('g')
-           .data(chartNames)
-           .enter()
-           .append('g')
-           .attr('transform',(t,i)=>d3.zoomIdentity.translate(9,45+tabHeight*i))
-           .each(function(d,i){
-                d3.select(this).append('rect')
-                                  .attr('fill',colorPalletes[i])
-                                  .attr('width',20)
-                                  .attr('height',tabHeight);
-                d3.select(this)
-                   .append('text')
-                   .text(d.name)
-                   .attr('x',tabHeight/2)
-                   .attr('y',-10)
-                   .style('font-size','.6em')
-                   .style('font-family','Verdana')
-                   .style('fill',"#ffffff")
-                   .attr('transform','rotate(90)')
-                   .style('dominant-baseline','middle')
-                   .style('text-anchor','middle');                  
 
-                })
-           .on('click',function(d){
-                Object.assign(state,{chartType:d.type});
-                dispatcher.call('updateUI',this,state);
-           });
 	}
     
     //getter and setter

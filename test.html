@@ -6,6 +6,7 @@
 		<script src="src/plotCanvas.js"></script>
 		<script src="src/groupsBar.js"></script>
 		<script src="src/linePlot.js"></script>
+		<script src="src/controlBar.js"></script>
 		<script src="src/legendBar.js"></script>
 		<script src="src/spotfireUI.js"></script>
 		<style type="text/css">
@@ -29,12 +30,12 @@
 	   
 		<div id='tableCanvas'>
 		   <svg id="UI"></svg>
-		<!-- </div> -->	
+		</div>	
 	</body>
 	<script>
     var svg = d3.select('#UI');
     d3.json('test.txt',function(data){
-    	var penalFn= agios.spotfirePanel.mavenData(data.values).sampleData(data.samples).trellisGroups(['compound']).dataGroups(['stime','cell_name','complex','reagent']);
+    	var penalFn= agios.spotfirePanel.mavenData(data.values).sampleData(data.samples).trellisGroups(['compound']).dataGroups(['stime','cell_name','reagent']);
 
     	svg.call(penalFn);
     });
