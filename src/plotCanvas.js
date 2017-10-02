@@ -1,5 +1,5 @@
 'use strict';
-var d3 = require('d3');
+import d3 from 'd3';
 var dataSet = {key:'title',values:new Array},
 	yAxis = null,
 	clickEventFn = function(d,i){console.log('click')};
@@ -71,4 +71,4 @@ plotCanvas.clickEvent = function(fn){
     	return this;
     }
 
-module.exports = plotCanvas;    
+export default plotCanvas;  

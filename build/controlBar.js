@@ -1,13 +1,19 @@
-  'use strict';
-  import d3 from 'd3'
-	var height = 1000,
-      dataSet = [{name:'bar',type:'bar',color:'#F9D5D3',selected:false},
+(function (global, factory) {
+	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('d3')) :
+	typeof define === 'function' && define.amd ? define(['d3'], factory) :
+	(global.controlBar = factory(global.d3));
+}(this, (function (d3) { 'use strict';
+
+d3 = d3 && d3.hasOwnProperty('default') ? d3['default'] : d3;
+
+'use strict';
+  var height = 1000;
+	var dataSet = [{name:'bar',type:'bar',color:'#F9D5D3',selected:false},
                  {name:'stack',type:'stackbar',color:'#ECA4A6',selected:false},
                  {name:'pie',type:'grouppie',color:'#807F89',selected:false},
                  {name:'line',type:'stackline',color:'#99A89E',selected:false},
-                 {name:'std',type:'std',color:'#BBC7BA',selected:false}],
-       
-      clickEventFn = (d)=>{console.log('click')};
+                 {name:'std',type:'std',color:'#BBC7BA',selected:false}];
+	var clickEventFn = (d)=>{console.log('click');};
 
 	var controlBar = function (_selection){
 		_selection.selectAll('*').remove();
@@ -19,7 +25,7 @@
            .append('g')
            .attr('transform',(t,i)=>d3.zoomIdentity.translate(9,45+(tabHeight+2)*i))
            .each(function(d,i){
-                let text = d.name===null?'no value':d.name.toString() 
+                let text = d.name===null?'no value':d.name.toString(); 
                 let textsize = Math.floor(tabHeight/text.length);
                 d3.select(this).append('rect')
                                   .attr('fill',d.color)
@@ -50,19 +56,21 @@
 		if(!arguments.length) return dataSet;
 		dataSet = data;
 		return this;
-	}
+	};
 
 	controlBar.setHeight = function (data){
 		if(!arguments.length) return height;
 		height = data;
 		return this;
-	}
+	};
 	
 	
   controlBar.clickEvent = function(fn){
     	if(!arguments.length) return clickEventFn;
     	clickEventFn=fn;
     	return this;
-    }
+    };
 
-export default controlBar;
+return controlBar;
+
+})));

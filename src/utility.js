@@ -1,5 +1,5 @@
     'use strict'
-    var d3 = require('d3');
+    import d3 from 'd3';
 
     var utility = {};
 
@@ -48,4 +48,4 @@
     //nest dictionary get values
     utility.nestFn = (nestObj)=> (groups)=>[...groups].reverse().reduce((acc,d)=>acc[d]?acc[d]:[],nestObj)
 
-    module.exports = utility;
+    export default utility;

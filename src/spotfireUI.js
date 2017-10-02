@@ -1,11 +1,11 @@
   'use strict'; 
-  var d3 = require('d3');
-
-  var getEvent = () => require("d3").event;
-  var controlBarFn = require('./controlBar.js'),
-      groupsBarFn = require('./groupsBar.js'),
-      legendBarFn = require('./legendBar.js'),
-      plotCanvasFn = require('./plotCanvas.js');
+  import d3 from 'd3';
+  
+  import {default as controlBarFn} from './controlBar.js';
+  import {default as groupsBarFn} from './groupsBar.js';
+  import {default as legendBarFn} from './legendBar.js';
+  import {default as plotCanvasFn} from './plotCanvas.js';
+  import {default as linePlotFn} from './linePlot.js';
 
   var dataSet = new Array,
       metaData = new Array,
@@ -287,32 +287,32 @@
             }).filter((c)=>c.x>=Number(d.min_rt)&&c.x<=Number(d.max_rt))
              return line;
            });
-        		lineView.call(agios.linePlot.bindData(lines));
+        		lineView.call(linePlotFn.bindData(lines));
         	})
         	
         });
 
      //mousewheel behavior
 
-    //  _selection.on('mousewheel.zoom',function(d){
+     _selection.on('mousewheel.zoom',function(d){
       
 
-    //   lineView.selectAll('*').remove();
-    //   let cur = state.curIndex;
-    //   if(d3.event.wheelDelta<0) cur = cur+1<dataLength?cur+1:dataLength-1;
-    //   else cur = cur-1>=0?cur-1:0;
-    //   Object.assign(state,{curIndex:cur});
-    //   dispatcher.call('updateUI',this,state);
-    // });
-
-    _selection.node().parentNode.addEventListener("wheel", function(e){
       lineView.selectAll('*').remove();
       let cur = state.curIndex;
-      if(e.wheelDelta<0) cur = cur+1<dataLength?cur+1:dataLength-1;
+      if(d3.event.wheelDelta<0) cur = cur+1<dataLength?cur+1:dataLength-1;
       else cur = cur-1>=0?cur-1:0;
       Object.assign(state,{curIndex:cur});
       dispatcher.call('updateUI',this,state);
     });
+
+    // _selection.node().parentNode.addEventListener("wheel", function(e){
+    //   lineView.selectAll('*').remove();
+    //   let cur = state.curIndex;
+    //   if(e.wheelDelta<0) cur = cur+1<dataLength?cur+1:dataLength-1;
+    //   else cur = cur-1>=0?cur-1:0;
+    //   Object.assign(state,{curIndex:cur});
+    //   dispatcher.call('updateUI',this,state);
+    // });
 
     //default view
     dispatcher.call('updateUI',this,state);
@@ -340,5 +340,4 @@
      return this;
    }
 
-
-module.exports = spotfireUI;
+export default spotfireUI;

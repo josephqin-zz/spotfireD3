@@ -1,7 +1,7 @@
 'use strict';
-var d3 = require('d3');
-var spotfireUI = require('./spotfireUI.js');
-var utility = require('./utility.js');
+import d3 from 'd3';
+import {default as spotfireUI} from './spotfireUI.js';
+import {default as utility} from './utility.js';
 
 
 var mavenData = new Array,
@@ -84,4 +84,4 @@ var mavenData = new Array,
     	return this;
     }
 
-module.exports = spotfirePanel
+export default spotfirePanel;

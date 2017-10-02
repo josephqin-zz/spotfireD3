@@ -1,5 +1,5 @@
 'use strict';
-var d3 = require('d3');
+import d3 from 'd3';
 var metaData = new Array;
 		
 	
@@ -65,4 +65,4 @@ var groupsBar = function (_selection){
 		return this;
 	}
 
-module.exports = groupsBar;
+export default groupsBar;

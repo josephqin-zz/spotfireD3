@@ -1,4 +1,4 @@
-var d3 = require('d3');
+import d3 from 'd3';
 var dataSet = new Array;
 var legendBar =function(_selection){
 		_selection.selectAll('*').remove();
@@ -34,4 +34,4 @@ legendBar.bindData = function(fn){
 		return this;
 	}
 
-module.exports = legendBar;	
+export default legendBar;
