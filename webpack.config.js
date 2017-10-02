@@ -1,7 +1,7 @@
 const path = require('path');
 
 module.exports = {
-	entry: './js/controlbar.js',
+	entry: './src/spotfirePanel.js',
 	output:{
 		library:'spotfirePanel',
 		libraryTarget:'umd',
