@@ -1,5 +1,5 @@
   'use strict'; 
-  import d3 from 'd3';
+  import * as d3 from 'd3';
   
   import {default as controlBarFn} from './controlBar.js';
   import {default as groupsBarFn} from './groupsBar.js';
@@ -157,8 +157,8 @@
          let yMap = getMap(metaData[metaData.length-2].values);
          yScale = d3.scaleBand().range([0,height-25]).domain(metaData[metaData.length-2].values.map((d)=>d.key).filter((d,i,self)=>self.indexOf(d)===i))
          yAxis = d3.axisRight(yScale).tickSize(width);
-         let arc = d3.arc().innerRadius(0).outerRadius(d3.min([yScale.bandwidth(),xScale.bandwidth()])/2)
-         let pie = d3.pie().sort((r)=>r.key).value((r)=>r.value.y)
+         let arcFn = d3.arc().innerRadius(0).outerRadius(d3.min([yScale.bandwidth(),xScale.bandwidth()])/2)
+         let pieFn = d3.pie().sort((r)=>r.key).value((r)=>r.value.y)
          let xMap = xGroup.reduce((acc,g,i)=>g.values.reduce((a,v)=>{
           a[v]=xScale(i)+xScale.bandwidth()/2;
           return a;
@@ -166,8 +166,8 @@
          chartData.values = metaData[metaData.length-2].values.reduce((acc,g,i)=>{ 
 
           let rows = chartData.values.filter((d)=>g.values.includes(+d.key)).sort((a,b)=>+a.key-(+b.key)) 
-          let pathMap = pie(rows).map(arc)
-          console.log() 
+          let pathMap = pieFn(rows).map(arcFn)
+          
           rows.forEach((v,index)=>{
             v.x = xMap[+v.key];
             v.y = yScale(yMap[i])+yScale.bandwidth()/2;

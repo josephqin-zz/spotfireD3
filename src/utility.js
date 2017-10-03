@@ -1,5 +1,5 @@
     'use strict'
-    import d3 from 'd3';
+    import * as d3 from "d3";
 
     var utility = {};
 
@@ -11,9 +11,9 @@
 
     //return d3.nest() by given the hierachical groups structure
     utility.groupBy = function(groups){
-        let nest = d3.nest();
-        groups.map((f)=>((d)=>d[f])).forEach((d)=>nest.key(d))
-        return nest.sortKeys(d3.ascending);
+        let nestfn = d3.nest();
+        groups.map((f)=>((d)=>d[f])).forEach((d)=>nestfn.key(d))
+        return nestfn.sortKeys(d3.ascending);
     };
     //flaten NestData
     utility.flatenNest = function (data,keys=[]){

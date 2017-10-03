@@ -1,5 +1,5 @@
 'use strict';
-import d3 from 'd3'
+import * as d3 from 'd3';
 var plotData = [];
 var margin = {top: 20, right: 20, bottom: 20, left: 40},
 	width = 500 - margin.left - margin.right,

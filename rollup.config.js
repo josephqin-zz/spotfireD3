@@ -5,10 +5,13 @@ export default {
   input: "src/spotfirePanel.js",
   extend: true,
   plugins: [node(), ascii()],
-  external: ['d3'],
+  // external: ['d3'],
+  globals: {
+    d3: 'd3'
+  },
   output: {
-    file: "build/spotfirePanel.js",
-    format: "umd",
-    name: "spotfirePanel"
+    file: "build/spotfirePanel_node.js",
+    format: "cjs"
   }
+  
 };

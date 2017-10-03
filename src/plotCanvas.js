@@ -1,5 +1,5 @@
-'use strict';
-import d3 from 'd3';
+import * as d3 from 'd3';
+
 var dataSet = {key:'title',values:new Array},
 	yAxis = null,
 	clickEventFn = function(d,i){console.log('click')};

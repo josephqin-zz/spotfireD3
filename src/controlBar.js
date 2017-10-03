@@ -1,5 +1,5 @@
   'use strict';
-  import d3 from 'd3';
+  import * as d3 from 'd3';
 	var height = 1000,
       dataSet = [{name:'bar',type:'bar',color:'#F9D5D3',selected:false},
                  {name:'stack',type:'stackbar',color:'#ECA4A6',selected:false},

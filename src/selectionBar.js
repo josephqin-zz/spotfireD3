@@ -1,4 +1,4 @@
-import d3 from 'd3';
+import * as d3 from 'd3';
 //sampledata template
 var metaData = [{
 	name:'Selection1',
@@ -41,10 +41,10 @@ dispatcher.on('selectOpt',function(root,opt){
 newMetaData.forEach((r)=>{
 	   			if(r.name === root.name){
 	   				//get current max number
-	   				let max = d3.max([0,...r.options.map((d)=>d.selected)]);
+	   				let maxv = d3.max([0,...r.options.map((d)=>d.selected)]);
 
 					//if current option is not selected then if single =0 or multi +1
-					let newValue = root.type==='single'?0:max+1;
+					let newValue = root.type==='single'?0:maxv+1;
 					
 					//if current option has value then dis-select it =-1
 					if (opt.selected>-1) newValue = -1;
