@@ -615,25 +615,25 @@ linePlot.bindData=function(data){
 
      //mousewheel behavior
 
-     _selection.on('mousewheel.zoom',function(d){
+    //  _selection.on('mousewheel.zoom',function(d){
       
 
-      lineView.selectAll('*').remove();
-      let cur = state.curIndex;
-      if(d3.event.wheelDelta<0) cur = cur+1<dataLength?cur+1:dataLength-1;
-      else cur = cur-1>=0?cur-1:0;
-      Object.assign(state,{curIndex:cur});
-      dispatcher.call('updateUI',this,state);
-    });
-
-    // _selection.node().parentNode.addEventListener("wheel", function(e){
     //   lineView.selectAll('*').remove();
     //   let cur = state.curIndex;
-    //   if(e.wheelDelta<0) cur = cur+1<dataLength?cur+1:dataLength-1;
+    //   if(d3.event.wheelDelta<0) cur = cur+1<dataLength?cur+1:dataLength-1;
     //   else cur = cur-1>=0?cur-1:0;
     //   Object.assign(state,{curIndex:cur});
     //   dispatcher.call('updateUI',this,state);
     // });
+
+    _selection.node().parentNode.addEventListener("wheel", function(e){
+      lineView.selectAll('*').remove();
+      let cur = state.curIndex;
+      if(e.wheelDelta<0) cur = cur+1<dataLength?cur+1:dataLength-1;
+      else cur = cur-1>=0?cur-1:0;
+      Object.assign(state,{curIndex:cur});
+      dispatcher.call('updateUI',this,state);
+    });
 
     //default view
     dispatcher.call('updateUI',this,state);
@@ -709,13 +709,182 @@ linePlot.bindData=function(data){
     //nest dictionary get values
     utility.nestFn = (nestObj)=> (groups)=>[...groups].reverse().reduce((acc,d)=>acc[d]?acc[d]:[],nestObj);
 
+//sampledata template
+var metaData$2 = [{
+	name:'Selection1',
+	type:'single',//* multi/single
+	stopBy:false,
+	options:[
+	{name:'opt1',value:'opt1',selected:-1},
+	{name:'opt2',value:'opt2',selected:-1},
+	{name:'opt3',value:'opt3',selected:-1}
+	]},
+	{name:'Selection2',
+	type:'multi',//* multi/single
+	stopBy:false,
+	options:[
+	{name:'opt1',value:'opt1',selected:-1},
+	{name:'opt2',value:'opt2',selected:-1},
+	{name:'opt3',value:'opt3',selected:-1}
+	]}];
+
+var cellWidth = 150;
+var cellHeight$1 = 25;
+
+
+
+
+var selectionBar = function(_selection){
+	
+var dispatcher = d3.dispatch('updateUI','stopBy','selectOpt');
+
+dispatcher.on('stopBy',function(index){
+	   let newMetaData = metaData$2.map((d)=>{ Object.assign(d,{stopBy:false});  return d;});
+	   if(index!==null){ newMetaData[index].stopBy = true; }
+	   	
+	   dispatcher.call('updateUI',this,newMetaData);
+	});
+
+dispatcher.on('selectOpt',function(root,opt){
+	   let newMetaData = [...metaData$2];
+	   
+newMetaData.forEach((r)=>{
+	   			if(r.name === root.name){
+	   				//get current max number
+	   				let max = d3.max([0,...r.options.map((d)=>d.selected)]);
+
+					//if current option is not selected then if single =0 or multi +1
+					let newValue = root.type==='single'?0:max+1;
+					
+					//if current option has value then dis-select it =-1
+					if (opt.selected>-1) newValue = -1;
+
+	   				r.options = root.options.map((o,i)=>{
+	   					let item = {};
+	   					Object.assign(item,o);
+	   					if(root.type==='single'){ item.selected = -1; }
+	   					//change current opt value
+	   					if(o.name===opt.name){item.selected = newValue;}
+	   					//handle the rest
+	   					if(opt.selected>0 && o.selected>opt.selected){ item.selected = o.selected-1; }
+	  
+
+	   					return item;
+	   				});
+	   			}
+	   		});
+	   
+
+	   dispatcher.call('updateUI',this,newMetaData);
+	});
+    
+	dispatcher.on('updateUI',function(newMetaData){
+	Object.assign(metaData$2,newMetaData);	
+	_selection.selectAll('*').remove();	
+	var roots = _selection.selectAll('g')
+			  .data(newMetaData)
+			  .enter()
+			  .append('g')
+			  .attr('transform',(d,i)=>d3.zoomIdentity.translate(cellWidth*i,0))
+			  .on('mouseover',function(d,i){
+	          		dispatcher.call('stopBy',this,i);
+			   });
+
+	roots.append('text')
+		 .text((d)=>d.name)	
+		 .style('font-size','1em')	
+		 .attr('x',0)
+		 .attr('y',cellHeight$1/2)
+		 .style('dominant-baseline','middle')
+		 .style('text-anchor','start');
+
+	
+			  
+	roots
+		.each(function(m,ri){
+			d3.select(this).append('g')
+						   .attr('id','opts'+ri)
+						   .attr('display',m.stopBy?'block':'none')
+						   .on('mouseleave',function(){
+							    dispatcher.call('stopBy',this,null);
+							})
+						   .selectAll('g')
+						   .data(m.options)
+						   .enter()
+						   .append('g')
+						   .attr('id',(t,j)=>t.name)
+						   .attr('transform',(t,j)=>d3.zoomIdentity.translate(0,cellHeight$1*(j+1)))
+						   .attr('z-index',-1)
+						   .each(function(t,j){
+						   	      let text = t.name===null?'no value':t.name.toString(); 
+                                  let textsize = Math.floor(cellWidth/text.length);
+								  d3.select(this).append('rect')
+								    .attr('fill',t.selected>=0?'#f7d0b2':'#ffffff')
+								    .style('opacity',0.8)
+									.attr('width',cellWidth)
+									.attr('height',cellHeight$1)
+									.attr('stroke','#000000');
+									
+															  
+								  d3.select(this).append('text')
+							        .text(t.name)
+									.style('font-size',textsize*1.8>16?16:textsize*1.8)
+									// .style('font-size','1em')	
+									.attr('x',0)
+									.attr('y',cellHeight$1/2)
+									.style('dominant-baseline','middle')
+									.style('text-anchor','start');
+					                
+					              if(t.selected>0){
+					                d3.select(this).append('text')
+							          .text(t.selected)
+									   // .style('fill',textColor)
+									  .style('font-size','1em')	
+									  .attr('x',cellWidth)
+									  .attr('y',cellHeight$1/2)
+									  .style('dominant-baseline','middle')
+									  .style('text-anchor','end');
+					                }
+
+							})
+							.on('mouseover',()=>d3.event.stopPropagation())
+							// .on('mouseover.opt',function(d,i){
+							// 	d3.select(this).selectAll('rect').attr('fill','#d4d8dd');
+							// 	})
+							.on('mouseout',()=>d3.event.stopPropagation())
+							// .on('mouseleave.opt',function(d,i){
+							// 	d3.select(this).selectAll('rect').attr('fill','none');
+							// 	})
+							.on('click',function(d,j){
+								dispatcher.call('selectOpt',this,m,d);
+							});
+
+
+
+		});
+	    
+		
+
+	});
+	
+	dispatcher.call('updateUI',this,metaData$2);
+
+
+    };
+
+selectionBar.bindData = function(data){
+	if(!arguments.length) return metaData$2;
+		metaData$2 = data;
+		return this;
+};
+
 'use strict';
 var mavenData = new Array;
 var sampleData = new Array;
-var trellisGroups = new Array;
-var dataGroups = new Array;
-var rollupFn = (leave)=>d3.mean(leave.map((d)=>d.areatop));
-var stdFn = (leave)=>d3.deviation(leave.map((d)=>d.areatop));
+var trellisOpts=['compound','group_id'];
+var yValueOpts=['area','areatop'];
+var groupsOpts=['reagent','stime', 'complex', 'dosage','cell_origin', 'cell_name', 'drug_sensitivity'];
+   
     
     //get group hierachy info
     var getGroupMetaData = (groupList,sampleGroups) => groupList.map((g,i)=>{return {
@@ -730,30 +899,90 @@ var stdFn = (leave)=>d3.deviation(leave.map((d)=>d.areatop));
     
     //get sampeMap index is the unique group and name will keep the name to identify which level of the groups to determine the color.
     var getSampleMap = (sampleGroups) => sampleGroups.reduce((acc,d,i)=>d.values.reduce((a,v)=>{ a[v]=i;return a },acc),{});
+    var optionsGenerator = (opts,d) => opts.map((o,i)=>{
+        let item = {};
+        item.name = o;
+        item.value = o;
+        if(d<=1){
+            item.selected = i<d?0:-1;
+        }else{
+            item.selected = i<d?i+1:-1;
+        }
+        
 
+        return item;
+    });
 	var spotfirePanel = function(_selection){
         _selection.selectAll('*').remove();
 
-        
-        var menuBar = _selection.append('g').attr('id','menuBar');
-        var plotUI = _selection.append('g').attr('id','plotUI');
+        var menuBarData = [{
+            name:'trellis By',
+            type:'single',//* multi/single
+            stopBy:false,
+            options:optionsGenerator(trellisOpts,1)},
+            {name:'y value',
+            type:'single',//* multi/single
+            stopBy:false,
+            options:optionsGenerator(yValueOpts,1)},
+            {name:'groups By',
+            type:'multi',//* multi/single
+            stopBy:false,
+            options:optionsGenerator(groupsOpts,3)}];
+
+     
+        var dispatcher = d3.dispatch('updateUI');
+        dispatcher.on('updateUI',function(newData){
+            
+            let trellisGroups = newData[0].options.filter((d)=>d.selected>-1).map((d)=>d.value);
+            let yValue = newData[1].options.filter((d)=>d.selected>-1).map((d)=>d.value)[0];
+            let dataGroups = newData[2].options.filter((d)=>d.selected>-1).sort((a,b)=>a.selected-b.selected).map((d)=>d.value);
+            if(d3.min(newData.map((d)=>d.options.filter((d)=>d.selected>-1).length))===0) return;
+            // console.log(newData.map((d)=>d.options.filter((d)=>d.selected>-1).length))
+            //get sample groups 
+            let  rollupFn = (leave)=>d3.mean(leave.map((d)=>d[yValue])),
+                 stdFn = (leave)=>d3.deviation(leave.map((d)=>d[yValue]));
+
+            let sampleGroups = utility.flatenNest(utility.groupBy(dataGroups).rollup((leave)=>leave.map((d)=>d.sample_id)).object(sampleData)).filter((d)=>!d.key.includes('null'));
+            
+            let groupMetadata = getGroupMetaData(dataGroups,sampleGroups);
+                  
+            let sampleMap = getSampleMap(sampleGroups);
+            //get mavenData 
+            
+            
+            let sampleIds = sampleGroups.reduce((acc,d)=>[...acc,...d.values],[]);
+            let chartData = utility.groupBy(trellisGroups).key((d)=>sampleMap[d.sample_id]).rollup((leave)=>{return {y:rollupFn(leave),std:stdFn(leave),peak_id:leave.map((d)=>d.peak_id)}}).entries(mavenData.filter((d)=>sampleIds.includes(d.sample_id)));
+            
+            let uiFn = spotfireUI.bindData(chartData).metaData(groupMetadata);
+            plotUI.call(uiFn);
 
 
+        });
 
-        //get sample groups 
-        var sampleGroups = utility.flatenNest(utility.groupBy(dataGroups).rollup((leave)=>leave.map((d)=>d.sample_id)).object(sampleData)).filter((d)=>!d.key.includes('null'));
+        var plotUI = _selection.append('g').attr('id','plotUI').attr('transform',d3.zoomIdentity.translate(0,25));
+        var menuBar = _selection.append('g').attr('id','menuBar').attr('transform',d3.zoomIdentity.translate(30,0));
+        menuBar.call(selectionBar.bindData(menuBarData));
+        var updateButton = _selection.append('g').attr('id','updateButton').attr('transform',d3.zoomIdentity.translate(800-150,2.5));
         
-        var groupMetadata = getGroupMetaData(dataGroups,sampleGroups);
-              
-        var sampleMap = getSampleMap(sampleGroups);
-        //get mavenData 
+        updateButton.append('rect').attr('fill','#2E86C1')
+                                    .style('opacity',0.8)
+                                    .attr('width',150)
+                                    .attr('height',20);
+
+
+        updateButton.append('text').text('update').style('font-size','1em')
+                                   .attr('x',150/2)
+                                   .attr('y',20/2)
+                                   .style('dominant-baseline','middle')
+                                   .style('text-anchor','middle');
+        
+        updateButton.on('click',function(){
+            dispatcher.call('updateUI',this,menuBarData);
+        });
+
+        dispatcher.call('updateUI',this,menuBarData);
         
         
-        var sampleIds = sampleGroups.reduce((acc,d)=>[...acc,...d.values],[]);
-        var chartData = utility.groupBy(trellisGroups).key((d)=>sampleMap[d.sample_id]).rollup((leave)=>{return {y:rollupFn(leave),std:stdFn(leave),peak_id:leave.map((d)=>d.peak_id)}}).entries(mavenData.filter((d)=>sampleIds.includes(d.sample_id)));
-        
-        var uiFn = spotfireUI.bindData(chartData).metaData(groupMetadata);
-        plotUI.call(uiFn);
        
 
 	};
@@ -764,15 +993,15 @@ var stdFn = (leave)=>d3.deviation(leave.map((d)=>d.areatop));
     	mavenData = data;
     	return this;
     };
-    spotfirePanel.trellisGroups = function(groups){
-    	if(!arguments.length) return trellisGroups;
-    	trellisGroups = [...groups];
+    spotfirePanel.trellisOpts = function(groups){
+    	if(!arguments.length) return trellisOpts;
+    	trellisOpts = [...groups];
     	return this;
     };
 
-    spotfirePanel.rollupFn = function(fn){
-        if(!arguments.length) return rollupFn;
-        rollupFn = fn;
+    spotfirePanel.yValueOpts = function(groups){
+        if(!arguments.length) return yValueOpts;
+        yValueOpts = [...groups];
         return this;
     };
 
@@ -782,9 +1011,9 @@ var stdFn = (leave)=>d3.deviation(leave.map((d)=>d.areatop));
     	return this;
     };
 
-    spotfirePanel.dataGroups = function(groups){
-    	if(!arguments.length) return dataGroups;
-    	dataGroups = [...groups];
+    spotfirePanel.groupsOpts = function(groups){
+    	if(!arguments.length) return groupsOpts;
+    	groupsOpts= [...groups];
     	return this;
     };
 

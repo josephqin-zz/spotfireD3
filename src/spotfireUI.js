@@ -294,25 +294,25 @@
 
      //mousewheel behavior
 
-     _selection.on('mousewheel.zoom',function(d){
+    //  _selection.on('mousewheel.zoom',function(d){
       
 
-      lineView.selectAll('*').remove();
-      let cur = state.curIndex;
-      if(d3.event.wheelDelta<0) cur = cur+1<dataLength?cur+1:dataLength-1;
-      else cur = cur-1>=0?cur-1:0;
-      Object.assign(state,{curIndex:cur});
-      dispatcher.call('updateUI',this,state);
-    });
-
-    // _selection.node().parentNode.addEventListener("wheel", function(e){
     //   lineView.selectAll('*').remove();
     //   let cur = state.curIndex;
-    //   if(e.wheelDelta<0) cur = cur+1<dataLength?cur+1:dataLength-1;
+    //   if(d3.event.wheelDelta<0) cur = cur+1<dataLength?cur+1:dataLength-1;
     //   else cur = cur-1>=0?cur-1:0;
     //   Object.assign(state,{curIndex:cur});
     //   dispatcher.call('updateUI',this,state);
     // });
+
+    _selection.node().parentNode.addEventListener("wheel", function(e){
+      lineView.selectAll('*').remove();
+      let cur = state.curIndex;
+      if(e.wheelDelta<0) cur = cur+1<dataLength?cur+1:dataLength-1;
+      else cur = cur-1>=0?cur-1:0;
+      Object.assign(state,{curIndex:cur});
+      dispatcher.call('updateUI',this,state);
+    });
 
     //default view
     dispatcher.call('updateUI',this,state);
