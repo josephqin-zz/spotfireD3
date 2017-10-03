@@ -2,7 +2,8 @@
 	<head>
 		<script src='http://d3js.org/d3.v4.js'></script>
 		
-		<script src="build/spotfirePanel.js"></script>
+		<script src="spotfirePanel.js"></script>
+		<script src="test.js"></script>
 		<style type="text/css">
 		#tableCanvas {
 		    height: 100%;
@@ -29,11 +30,12 @@
 	<script>
 
     
-    var svg = d3.select('#UI');
+    var svg = d3.select('#UI').append('g');//the container for Spotfire Panel
 
-    tOpts=['compound','group_id'],
-    yOpts=['area','areatop'],
-    gOpts=['reagent','stime', 'complex','cell_origin', 'cell_name', 'drug_sensitivity']
+    var tOpts=['compound','group_id'],//set the options list for trellis the data
+    	yOpts=['area','areatop'],//set the options list for the Y-axis value
+    	//set the options list for the hierachy group choose 
+    	gOpts=['reagent','stime', 'complex','cell_origin', 'cell_name', 'drug_sensitivity']
 
     d3.json('test.txt',function(data){
     	var penalFn= spotfirePanel
@@ -43,7 +45,10 @@
     				.yValueOpts(yOpts)
     				.groupsOpts(gOpts);
 
-    	svg.call(penalFn);
+    	svg.call(penalFn);//render the Spotfire Panel to local container
+        
+        //d3V4 has zoomIdentity function to change the size and location of the panel;
+    	svg.attr('transform',d3.zoomIdentity.translate(20,20).scale(0.7));
     });
     
 

@@ -1,0 +1,57 @@
+<html>
+	<head>
+		<script src='http://d3js.org/d3.v4.js'></script>
+		<script src="test.js"></script>
+		<script src="spotfirePanel.js"></script>
+		<style type="text/css">
+		#tableCanvas {
+		    height: 100%;
+		    width: 100%;
+		    border:2px solid #000;
+		    overflow: scroll;
+		   /* margin-left:40%;*/
+		   
+		}
+
+		svg {
+		    display: block;
+		    width: 500%;
+		    height: 100%;
+		}
+		</style>
+	</head>
+	<body>
+	   
+		<div id='tableCanvas'>
+		   <svg id="UI"></svg>
+		</div>	
+	</body>
+	<script>
+
+    
+    var svg = d3.select('#UI').append('g');//the container for Spotfire Panel
+
+    var tOpts=['compound','group_id'],//set the options list for trellis the data
+    	yOpts=['area','areatop'],//set the options list for the Y-axis value
+    	//set the options list for the hierachy group choose 
+    	gOpts=['reagent','stime', 'complex','cell_origin', 'cell_name', 'drug_sensitivity']
+
+   
+    var penalFn= spotfirePanel
+    				.mavenData(dataset.values)
+    				.sampleData(dataset.samples)
+    				.trellisOpts(tOpts)
+    				.yValueOpts(yOpts)
+    				.groupsOpts(gOpts);
+
+    svg.call(penalFn);//render the Spotfire Panel to local container
+        
+    //d3V4 has zoomIdentity function to change the size and location of the panel;
+    svg.attr('transform',d3.zoomIdentity.translate(20,20).scale(0.7));
+    
+    
+
+  
+   
+	</script>
+</html>
