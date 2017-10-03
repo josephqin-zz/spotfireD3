@@ -84,13 +84,28 @@
 
 	dispatcher.on('selectOpt',function(root,opt){
 	   let newMetaData = [...metaData];
-	   console.log(opt);
+	   
 	   newMetaData.forEach((r)=>{
 	   			if(r.name === root.name){
+	   				//get current max number
+	   				let max = d3.max([0,...r.options.map((d)=>d.selected)]);
+
+					//if current option is not selected then if single =0 or multi +1
+					let newValue = root.type==='single'?0:max+1;
+					
+					//if current option has value then dis-select it =-1
+					if (opt.selected>-1) newValue = -1;
+
 	   				r.options = root.options.map((o,i)=>{
 	   					let item = {};
 	   					Object.assign(item,o);
-	   					item.selected = item.name===opt.name?0:-1;
+	   					if(root.type==='single'){ item.selected = -1 }
+	   					//change current opt value
+	   					if(o.name===opt.name){item.selected = newValue;}
+	   					//handle the rest
+	   					if(opt.selected>0 && o.selected>opt.selected){ item.selected = o.selected-1 }
+	  
+
 	   					return item;
 	   				})
 	   			}
@@ -128,15 +143,15 @@
 						   .attr('id','opts'+ri)
 						   .attr('display',m.stopBy?'block':'none')
 						   .on('mouseleave',function(){
-							dispatcher.call('stopBy',this,null);
+							    dispatcher.call('stopBy',this,null);
 							})
 						   .selectAll('g')
-						    .data(m.options)
-						    .enter()
-							.append('g')
-							.attr('id',(t,j)=>t.name)
-						    .attr('transform',(t,j)=>d3.zoomIdentity.translate(0,cellHeight*(j+1)))
-						    .each(function(t,j){
+						   .data(m.options)
+						   .enter()
+						   .append('g')
+						   .attr('id',(t,j)=>t.name)
+						   .attr('transform',(t,j)=>d3.zoomIdentity.translate(0,cellHeight*(j+1)))
+						   .each(function(t,j){
 								  d3.select(this).append('rect')
 								    .attr('fill',t.selected>=0?'#f7d0b2':'none')
 									.attr('width',cellWidth)
@@ -144,17 +159,17 @@
 									.attr('stroke','#000000');
 									
 															  
-									d3.select(this).append('text')
-							          .text(t.name)
+								  d3.select(this).append('text')
+							        .text(t.name)
 									   // .style('fill',textColor)
-									  .style('font-size','1em')	
-									  .attr('x',0)
-									  .attr('y',cellHeight/2)
-									  .style('dominant-baseline','middle')
-									  .style('text-anchor','start')
+									.style('font-size','1em')	
+									.attr('x',0)
+									.attr('y',cellHeight/2)
+									.style('dominant-baseline','middle')
+									.style('text-anchor','start')
 					                
-					                if(t.selected>0){
-					                  d3.select(this).append('text')
+					              if(t.selected>0){
+					                d3.select(this).append('text')
 							          .text(t.selected)
 									   // .style('fill',textColor)
 									  .style('font-size','1em')	
