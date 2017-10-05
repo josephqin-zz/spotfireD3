@@ -20,7 +20,7 @@
   var getMap = (data) => data.reduce((acc,d,i)=>{acc[i]=d.key;return acc},{});
   //draw rect
   var drawRect = (x,y,width,height) => 'M'+x+' '+y+' v '+height+' h '+width+' v -'+height+' Z';
-  var drawCircle = (x,y,radius) => 'M '+(0-radius)+' '+y+' a '+radius+' '+radius+', 0, 1, 0, '+(radius*2)+' '+y+' '+'a '+radius+' '+radius+', 0, 1, 0, '+(-radius*2)+' '+y;
+  var drawCircle = (x,y,radius) => 'M '+(x-radius)+' '+y+' a '+radius+' '+radius+', 0, 1, 0, '+(radius*2)+' '+y+' '+'a '+radius+' '+radius+', 0, 1, 0, '+(x-radius*2)+' '+y;
   var spotfireUI = function(_selection){
   _selection.selectAll('*').remove();
 
