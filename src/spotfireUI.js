@@ -6,6 +6,7 @@
   import {default as legendBarFn} from './legendBar.js';
   import {default as plotCanvasFn} from './plotCanvas.js';
   import {default as linePlotFn} from './linePlot.js';
+  import {default as scrollerBarFn} from './scrollerBar'
 
   var dataSet = new Array,
       metaData = new Array,
@@ -34,7 +35,7 @@
   var mainCanvas = _selection.append('g').attr('id','mainCanvas').attr('transform',d3.zoomIdentity.translate(30,cellHeight));
   var groupBar = _selection.append('g').attr('id','groupBar').attr('transform',d3.zoomIdentity.translate(30,height+cellHeight));	
   var lineView = _selection.append('g').attr('id','lineView').attr('transform',d3.zoomIdentity.translate(width+40+30,cellHeight));
-
+  var scrollerBar = _selection.append('g').attr('id','searchBar').attr('transform',d3.zoomIdentity.translate(30,cellHeight));
 
   var controlData = (state)=>[{name:'bar',type:'bar',color:'#F9D5D3',selected:false},
   {name:'stack',type:'stackbar',color:'#ECA4A6',selected:false},
@@ -263,7 +264,7 @@
      	legendBar.call(legendBarFn.bindData(legendData));
      	groupBar.call(groupsBarFn.bindData(groupbarData));
       leftBar.call(controlBarFn.setHeight(height).bindData(controlData(newState)).clickEvent(function(d,i){ d.type==='std'?state.std=!state.std:state.chartType=d.type;dispatcher.call('updateUI',this,state); }))  
-
+      
     });
 
     //Chart type Change
@@ -305,14 +306,23 @@
     //   dispatcher.call('updateUI',this,state);
     // });
 
-    _selection.node().parentNode.addEventListener("wheel", function(e){
-      lineView.selectAll('*').remove();
-      let cur = state.curIndex;
-      if(e.wheelDelta<0) cur = cur+1<dataLength?cur+1:dataLength-1;
-      else cur = cur-1>=0?cur-1:0;
-      Object.assign(state,{curIndex:cur});
-      dispatcher.call('updateUI',this,state);
-    });
+    // _selection.node().parentNode.addEventListener("wheel", function(e){
+    //   lineView.selectAll('*').remove();
+    //   let cur = state.curIndex;
+    //   if(e.wheelDelta<0) cur = cur+1<dataLength?cur+1:dataLength-1;
+    //   else cur = cur-1>=0?cur-1:0;
+    //   Object.assign(state,{curIndex:cur});
+    //   dispatcher.call('updateUI',this,state);
+    // });
+
+    //searchBar
+    let chartOpts = dataSet.map((d)=>d.key).filter((d)=>d)
+    let selectChart = (value)=>{
+       Object.assign(state,{curIndex:chartOpts.indexOf(value)});
+       dispatcher.call('updateUI',this,state);
+    };
+    scrollerBar.call(scrollerBarFn.bindData(chartOpts).setSelectFn(selectChart));
+    
 
     //default view
     dispatcher.call('updateUI',this,state);

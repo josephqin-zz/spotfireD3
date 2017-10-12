@@ -15,5 +15,12 @@
   "bugs": {
     "url": "https://github.com/josephqin/spotfireD3/issues"
   },
-  "homepage": "https://github.com/josephqin/spotfireD3#readme"
+  "homepage": "https://github.com/josephqin/spotfireD3#readme",
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-plugin-external-helpers": "^6.22.0",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-preset-latest": "^6.24.1",
+    "rollup-plugin-babel": "^3.0.2"
+  }
 }
