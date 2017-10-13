@@ -23,6 +23,12 @@ var inpoutBox =	function(_selection){
   			 	    dispatcher.call('getInput',this,this.value);
   			 	    			  	 			
   			  		
+  	    	   	})
+  	    	   	.on('click',function(){
+  			  		
+  			 	    dispatcher.call('getInput',this,this.value);
+  			   			  	 			
+  			  		
   	    	   	});
 	};
 

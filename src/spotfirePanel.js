@@ -55,7 +55,7 @@ var mavenData = new Array,
             {name:'groups By',
             type:'multi',//* multi/single
             stopBy:false,
-            options:optionsGenerator(groupsOpts,3)}];
+            options:optionsGenerator(groupsOpts,2)}];
 
      
         var dispatcher = d3.dispatch('updateUI')
@@ -73,7 +73,7 @@ var mavenData = new Array,
             let sampleGroups = utility.flatenNest(utility.groupBy(dataGroups).rollup((leave)=>leave.map((d)=>d.sample_id)).object(sampleData)).filter((d)=>!d.key.includes('null'));
             
             let groupMetadata = getGroupMetaData(dataGroups,sampleGroups);
-                  
+            // console.log(groupMetadata);      
             let sampleMap = getSampleMap(sampleGroups);
             //get mavenData 
             

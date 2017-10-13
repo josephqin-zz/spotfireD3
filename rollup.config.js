@@ -11,7 +11,7 @@ export default {
     d3: 'd3'
   },
   output: {
-    file: "build/spotfirePanel.js",
+    file: "demo/spotfirePanel.js",
     format: "umd",
     name: "spotfirePanel"
   },

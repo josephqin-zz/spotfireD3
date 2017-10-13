@@ -24,7 +24,19 @@
   var drawCircle = (x,y,radius) => 'M '+(x-radius)+' '+y+' a '+radius+' '+radius+', 0, 1, 0, '+(radius*2)+' '+0+' '+'a '+radius+' '+radius+', 0, 1, 0, '+(-radius*2)+' '+0;
   var spotfireUI = function(_selection){
   _selection.selectAll('*').remove();
+  
 
+  var chartTypeList = [{name:'bar',type:'bar',color:'#F9D5D3',selected:false},
+                        {name:'stack',type:'stackbar',color:'#ECA4A6',selected:false},
+                        {name:'pie',type:'grouppie',color:'#807F89',selected:false},
+                        {name:'line',type:'stackline',color:'#99A89E',selected:false},
+                        {name:'std',type:'std',color:'#BBC7BA',selected:false}].filter((d,i)=>{
+                        if( metaData.length>=3 ) {return true }
+                        else if( metaData.length == 2 ){ return [0,3,4].includes(i) }
+                        else{ return [0,4].includes(i); }  
+                        })
+  
+  
   //workflow definition
 
   var dispatcher = d3.dispatch('chromagraphUI','updateUI');
@@ -37,11 +49,7 @@
   var lineView = _selection.append('g').attr('id','lineView').attr('transform',d3.zoomIdentity.translate(width+40+30,cellHeight));
   var scrollerBar = _selection.append('g').attr('id','searchBar').attr('transform',d3.zoomIdentity.translate(30,cellHeight));
 
-  var controlData = (state)=>[{name:'bar',type:'bar',color:'#F9D5D3',selected:false},
-  {name:'stack',type:'stackbar',color:'#ECA4A6',selected:false},
-  {name:'pie',type:'grouppie',color:'#807F89',selected:false},
-  {name:'line',type:'stackline',color:'#99A89E',selected:false},
-  {name:'std',type:'std',color:'#BBC7BA',selected:false}].map((b)=>{
+  var controlData = (state)=>chartTypeList.map((b)=>{
     let item = {}
     Object.assign(item,b)
     if (b.type === state.chartType) item.selected=true;

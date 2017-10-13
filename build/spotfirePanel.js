@@ -268,38 +268,41 @@ var placeholder = 'Select...';
 var dispatcher = d3.dispatch('getInput', 'reset');
 
 dispatcher.on('getInput', function (value) {
-	console.log(this.value);
+  console.log(this.value);
 });
 dispatcher.on('reset', function () {});
 
 var inpoutBox = function inpoutBox(_selection) {
-	var inputBox = _selection.append('g').attr('id', 'inputBox').append('foreignObject').attr("width", width$4).attr("height", height$5).append('xhtml:input').attr('placeholder', placeholder).on('keyup', function () {
+  var inputBox = _selection.append('g').attr('id', 'inputBox').append('foreignObject').attr("width", width$4).attr("height", height$5).append('xhtml:input').attr('placeholder', placeholder).on('keyup', function () {
 
-		dispatcher.call('getInput', this, this.value);
-	});
+    dispatcher.call('getInput', this, this.value);
+  }).on('click', function () {
+
+    dispatcher.call('getInput', this, this.value);
+  });
 };
 
 inpoutBox.setInputFn = function (fn) {
-	dispatcher.on('getInput', fn);
-	return this;
+  dispatcher.on('getInput', fn);
+  return this;
 };
 
 inpoutBox.setHeight = function (data) {
-	if (!arguments.length) return height$5;
-	height$5 = data;
-	return this;
+  if (!arguments.length) return height$5;
+  height$5 = data;
+  return this;
 };
 
 inpoutBox.setWidth = function (data) {
-	if (!arguments.length) return dataset;
-	width$4 = data;
-	return this;
+  if (!arguments.length) return dataset;
+  width$4 = data;
+  return this;
 };
 
 inpoutBox.setPlaceholder = function (data) {
-	if (!arguments.length) return placeholder;
-	placeholder = data;
-	return this;
+  if (!arguments.length) return placeholder;
+  placeholder = data;
+  return this;
 };
 
 var asyncGenerator = function () {
@@ -629,6 +632,16 @@ var spotfireUI = function spotfireUI(_selection) {
 
   _selection.selectAll('*').remove();
 
+  var chartTypeList = [{ name: 'bar', type: 'bar', color: '#F9D5D3', selected: false }, { name: 'stack', type: 'stackbar', color: '#ECA4A6', selected: false }, { name: 'pie', type: 'grouppie', color: '#807F89', selected: false }, { name: 'line', type: 'stackline', color: '#99A89E', selected: false }, { name: 'std', type: 'std', color: '#BBC7BA', selected: false }].filter(function (d, i) {
+    if (metaData.length >= 3) {
+      return true;
+    } else if (metaData.length == 2) {
+      return [0, 3, 4].includes(i);
+    } else {
+      return [0, 4].includes(i);
+    }
+  });
+
   //workflow definition
 
   var dispatcher = d3.dispatch('chromagraphUI', 'updateUI');
@@ -642,7 +655,7 @@ var spotfireUI = function spotfireUI(_selection) {
   var scrollerBar$$1 = _selection.append('g').attr('id', 'searchBar').attr('transform', d3.zoomIdentity.translate(30, cellHeight));
 
   var controlData = function controlData(state) {
-    return [{ name: 'bar', type: 'bar', color: '#F9D5D3', selected: false }, { name: 'stack', type: 'stackbar', color: '#ECA4A6', selected: false }, { name: 'pie', type: 'grouppie', color: '#807F89', selected: false }, { name: 'line', type: 'stackline', color: '#99A89E', selected: false }, { name: 'std', type: 'std', color: '#BBC7BA', selected: false }].map(function (b) {
+    return chartTypeList.map(function (b) {
       var item = {};
       Object.assign(item, b);
       if (b.type === state.chartType) item.selected = true;
@@ -1282,7 +1295,7 @@ var spotfirePanel = function spotfirePanel(_selection) {
         options: optionsGenerator(yValueOpts, 1) }, { name: 'groups By',
         type: 'multi', //* multi/single
         stopBy: false,
-        options: optionsGenerator(groupsOpts, 3) }];
+        options: optionsGenerator(groupsOpts, 2) }];
 
     var dispatcher = d3.dispatch('updateUI');
     dispatcher.on('updateUI', function (newData) {
@@ -1331,7 +1344,7 @@ var spotfirePanel = function spotfirePanel(_selection) {
         });
 
         var groupMetadata = getGroupMetaData(dataGroups, sampleGroups);
-
+        // console.log(groupMetadata);      
         var sampleMap = getSampleMap(sampleGroups);
         //get mavenData 
 
