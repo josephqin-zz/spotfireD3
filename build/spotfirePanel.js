@@ -529,7 +529,8 @@ var scrollerBar = function scrollerBar(_selection) {
 		});
 		selectFn(opt.value);
 		inputPanel.call(inputPanelFn.setPlaceholder(opt.value));
-		selectionPanel.selectAll('*').remove();
+		dispatcher.call('updateOpts', this, rowRanges);
+		// selectionPanel.selectAll('*').remove();
 	});
 
 	dispatcher.on('updateOpts', function () {
@@ -651,8 +652,8 @@ var spotfireUI = function spotfireUI(_selection) {
   var legendBar$$1 = _selection.append('g').attr('id', 'legendBar').attr('transform', d3.zoomIdentity.translate(30, 0));
   var mainCanvas = _selection.append('g').attr('id', 'mainCanvas').attr('transform', d3.zoomIdentity.translate(30, cellHeight));
   var groupBar = _selection.append('g').attr('id', 'groupBar').attr('transform', d3.zoomIdentity.translate(30, height$1 + cellHeight));
-  var lineView = _selection.append('g').attr('id', 'lineView').attr('transform', d3.zoomIdentity.translate(width$1 + 40 + 30, cellHeight));
-  var scrollerBar$$1 = _selection.append('g').attr('id', 'searchBar').attr('transform', d3.zoomIdentity.translate(30, cellHeight));
+  var lineView = _selection.append('g').attr('id', 'lineView').attr('transform', d3.zoomIdentity.translate(width$1 + 40 + 30 + 200, cellHeight));
+  var scrollerBar$$1 = _selection.append('g').attr('id', 'searchBar').attr('transform', d3.zoomIdentity.translate(width$1 + 40 + 30, cellHeight));
 
   var controlData = function controlData(state) {
     return chartTypeList.map(function (b) {

@@ -2,6 +2,15 @@
     import * as d3 from "d3";
 
     var utility = {};
+    var sortRules = (a,b)=>{
+        if( !parseInt(a) & parseInt(b)>=0 ){
+            return -1;
+        }else if( !parseInt(b) & parseInt(a)>=0 ){
+            return 1;
+        }else{
+            return d3.ascending(a.toUpperCase(),b.toUpperCase());
+        }
+    }
 
 
     //get Max and Min of given array;
@@ -13,7 +22,7 @@
     utility.groupBy = function(groups){
         let nestfn = d3.nest();
         groups.map((f)=>((d)=>d[f])).forEach((d)=>nestfn.key(d))
-        return nestfn.sortKeys(d3.ascending);
+        return nestfn.sortKeys(sortRules);
     };
     //flaten NestData
     utility.flatenNest = function (data,keys=[]){

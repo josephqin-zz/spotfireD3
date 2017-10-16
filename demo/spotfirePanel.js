@@ -273,7 +273,7 @@ dispatcher.on('getInput', function (value) {
 dispatcher.on('reset', function () {});
 
 var inpoutBox = function inpoutBox(_selection) {
-  var inputBox = _selection.append('g').attr('id', 'inputBox').append('foreignObject').attr("width", width$4).attr("height", height$5).append('xhtml:input').attr('placeholder', placeholder).on('keyup', function () {
+  var inputBox = _selection.append('g').attr('id', 'inputBox').append('foreignObject').attr("width", width$4).attr("height", height$5).append('xhtml:input').style('border', '1px solid #000000').attr('width', '200').attr('placeholder', placeholder).on('keyup', function () {
 
     dispatcher.call('getInput', this, this.value);
   }).on('click', function () {
@@ -303,6 +303,63 @@ inpoutBox.setPlaceholder = function (data) {
   if (!arguments.length) return placeholder;
   placeholder = data;
   return this;
+};
+
+'use strict';
+
+var height$6 = 270;
+var width$5 = 10;
+var location = 0;
+var moveDomain = 100;
+var dragEventFn = function dragEventFn(d) {
+	console.log(d);
+};
+
+var drawRect$1 = function drawRect(x, y, width, height) {
+	return 'M' + x + ' ' + y + ' v ' + height + ' h ' + width + ' v -' + height + ' Z';
+};
+
+var scrollerButton = function scrollerButton(_selection) {
+	_selection.selectAll('*').remove();
+
+	//draw track
+	_selection.append('g').append('path').attr('d', 'M ' + width$5 / 2 + ', 0' + 'v ' + height$6).attr('fill', "none").attr("stroke", "#000").attr("stroke-width", '1px');
+	//draw button
+	var buttonHeight = height$6 * 0.1;
+	var buttonWidth = width$5 * 0.7;
+	var moveRang = [height$6 * 0.05, height$6 * 0.95];
+	var button = _selection.append('g');
+	var scaleFn = d3.scaleLinear().range(moveRang).domain([0, moveDomain]);
+	button.append('path').attr('d', drawRect$1(-buttonWidth / 2, -buttonHeight / 2, buttonWidth, buttonHeight)).style('fill', '#2E86C1');
+
+	button.attr('transform', d3.zoomIdentity.translate(width$5 / 2, scaleFn(location)));
+
+	button.call(d3.drag().on("drag", dragged));
+	function dragged() {
+		var yCoordinate = function yCoordinate(a, b, c) {
+			return a + b + c - d3.min([a, b, c]) - d3.max([a, b, c]);
+		};
+		dragEventFn(Math.floor(scaleFn.invert(d3.event.y)));
+		d3.select(this).attr('transform', d3.zoomIdentity.translate(width$5 / 2, yCoordinate.apply(undefined, moveRang.concat([d3.event.y]))));
+	}
+};
+
+scrollerButton.setDomain = function (data) {
+	if (!arguments.length) return data;
+	moveDomain = data;
+	return this;
+};
+
+scrollerButton.setLocation = function (data) {
+	if (!arguments.length) return data;
+	location = data;
+	return this;
+};
+
+scrollerButton.setDragEvent = function (fn) {
+	if (!arguments.length) return fn;
+	dragEventFn = fn;
+	return this;
 };
 
 var asyncGenerator = function () {
@@ -498,6 +555,9 @@ var options = d3.range('100').map(function (d, i) {
 var width$3 = 200;
 var height$4 = 300;
 var rowRanges = d3.range(10);
+var showOptions = options.filter(function (d) {
+	return d.show;
+});
 var selectFn = function selectFn(value) {
 	console.log(value + ' is selected');
 };
@@ -509,10 +569,10 @@ var scrollerBar = function scrollerBar(_selection) {
 	var cellHeight = (height$4 - 30) / rowRanges.length;
 	var cellWidth = width$3;
 
-	var dispatcher = d3.dispatch('updateOpts', 'selectOpt', 'autoComplete');
+	var dispatcher = d3.dispatch('updateOpts', 'selectOpt', 'scrollOpts');
 	var inputFn = function inputFn(value) {
 		options = options.map(function (d) {
-			return _extends({}, d, { show: value && d.value.toLowerCase().indexOf(value) === -1 ? false : true });
+			return _extends({}, d, { show: value && d.value.toLowerCase().indexOf(value.toLowerCase()) === -1 ? false : true });
 		});
 		rowRanges = d3.range(rowRanges.length);
 		dispatcher.call('updateOpts', _this, rowRanges);
@@ -521,15 +581,25 @@ var scrollerBar = function scrollerBar(_selection) {
 	var inputPanel = _selection.append('g').attr('id', 'inputBox').on('click', function (d) {
 		dispatcher.call('updateOpts', this, rowRanges);
 	}).call(inputPanelFn);
-	var selectionPanel = _selection.append('g').attr('id', 'selectionPanel').attr('transform', d3.zoomIdentity.translate(0, 30));
+	var scrollerPanel = _selection.append('g').attr('id', 'scrollerPanel').attr('transform', d3.zoomIdentity.translate(0, 30));
+	var selectionPanel = _selection.append('g').attr('id', 'selectionPanel').attr('transform', d3.zoomIdentity.translate(10, 30));
 
 	dispatcher.on('selectOpt', function (opt) {
 		options = options.map(function (d) {
 			return _extends({}, d, { selected: d.value === opt.value ? true : false });
-		});
+		}); //change selected opt statu;
 		selectFn(opt.value);
-		inputPanel.call(inputPanelFn.setPlaceholder(opt.value));
-		selectionPanel.selectAll('*').remove();
+		inputPanel.call(inputPanelFn.setPlaceholder(opt.value)); //input show the selected one
+		dispatcher.call('updateOpts', this, rowRanges); //opts refreshed
+		// selectionPanel.selectAll('*').remove();
+	});
+
+	dispatcher.on('scrollOpts', function (step) {
+		if (!(step < 0 && d3.min(rowRanges) - 1 === -1) && !(step > 0 && d3.max(rowRanges) + 1 === showOptions.length)) rowRanges = rowRanges.map(function (d) {
+			return d + step;
+		});
+
+		dispatcher.call('updateOpts', this, rowRanges);
 	});
 
 	dispatcher.on('updateOpts', function () {
@@ -538,9 +608,11 @@ var scrollerBar = function scrollerBar(_selection) {
 		var ranges = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [].concat(toConsumableArray(rowRanges));
 
 		selectionPanel.selectAll('*').remove();
-		var showOptions = options.filter(function (d) {
+		scrollerPanel.selectAll('*').remove();
+		showOptions = options.filter(function (d) {
 			return d.show;
 		});
+
 		selectionPanel.selectAll('g').data(showOptions.filter(function (d, i) {
 			return ranges.includes(i);
 		})).enter().append('g').each(function (opt, i) {
@@ -558,19 +630,22 @@ var scrollerBar = function scrollerBar(_selection) {
 			return dispatcher.call('selectOpt', _this2, d);
 		});
 
+		if (showOptions.length > rowRanges.length) {
+			scrollerPanel.call(scrollerButton.setDomain(showOptions.length).setLocation(d3.min(rowRanges)).setDragEvent(function (cur) {
+				if (cur >= 0 && cur <= showOptions.length - 9) {
+					rowRanges = d3.range(cur, cur + 10);
+					dispatcher.call('updateOpts', _this2, rowRanges);
+				}
+			}));
+		}
 		selectionPanel.on('mousewheel.zoom', function () {
 			if (showOptions.length > rowRanges.length) {
-				var step = d3.event.wheelDelta < 0 ? 1 : -1;
-				if (!(step < 0 && d3.min(rowRanges) - 1 === -1) && !(step > 0 && d3.max(rowRanges) + 1 === showOptions.length)) rowRanges = rowRanges.map(function (d) {
-					return d + step;
-				});
-
-				dispatcher.call('updateOpts', this, rowRanges);
+				dispatcher.call('scrollOpts', this, d3.event.wheelDelta < 0 ? 1 : -1);
 			}
 		});
 	});
 
-	// dispatcher.call('updateOpts',this,rowRanges);
+	dispatcher.call('updateOpts', this, rowRanges);
 };
 
 scrollerBar.bindData = function (data) {
@@ -651,8 +726,8 @@ var spotfireUI = function spotfireUI(_selection) {
   var legendBar$$1 = _selection.append('g').attr('id', 'legendBar').attr('transform', d3.zoomIdentity.translate(30, 0));
   var mainCanvas = _selection.append('g').attr('id', 'mainCanvas').attr('transform', d3.zoomIdentity.translate(30, cellHeight));
   var groupBar = _selection.append('g').attr('id', 'groupBar').attr('transform', d3.zoomIdentity.translate(30, height$1 + cellHeight));
-  var lineView = _selection.append('g').attr('id', 'lineView').attr('transform', d3.zoomIdentity.translate(width$1 + 40 + 30, cellHeight));
-  var scrollerBar$$1 = _selection.append('g').attr('id', 'searchBar').attr('transform', d3.zoomIdentity.translate(30, cellHeight));
+  var lineView = _selection.append('g').attr('id', 'lineView').attr('transform', d3.zoomIdentity.translate(width$1 + 40 + 30 + 200, cellHeight));
+  var scrollerBar$$1 = _selection.append('g').attr('id', 'searchBar').attr('transform', d3.zoomIdentity.translate(width$1 + 40 + 30, cellHeight));
 
   var controlData = function controlData(state) {
     return chartTypeList.map(function (b) {
@@ -1026,6 +1101,15 @@ spotfireUI.chartType = function (data) {
 'use strict';
 
 var utility = {};
+var sortRules = function sortRules(a, b) {
+    if (!parseInt(a) & parseInt(b) >= 0) {
+        return -1;
+    } else if (!parseInt(b) & parseInt(a) >= 0) {
+        return 1;
+    } else {
+        return d3.ascending(a.toUpperCase(), b.toUpperCase());
+    }
+};
 
 //get Max and Min of given array;
 utility.getScale = function (vals) {
@@ -1044,7 +1128,7 @@ utility.groupBy = function (groups) {
     }).forEach(function (d) {
         return nestfn.key(d);
     });
-    return nestfn.sortKeys(d3.ascending);
+    return nestfn.sortKeys(sortRules);
 };
 //flaten NestData
 utility.flatenNest = function (data) {

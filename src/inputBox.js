@@ -17,6 +17,8 @@ var inpoutBox =	function(_selection){
   			  	.attr("width", width)
               	.attr("height", height)
   			  	.append('xhtml:input')
+            .style('border','1px solid #000000')
+            .attr('width','200')
   			  	.attr('placeholder',placeholder)
   			  	.on('keyup',function(){
   			  		

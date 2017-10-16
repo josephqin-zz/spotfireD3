@@ -6,7 +6,7 @@
   import {default as legendBarFn} from './legendBar.js';
   import {default as plotCanvasFn} from './plotCanvas.js';
   import {default as linePlotFn} from './linePlot.js';
-  import {default as scrollerBarFn} from './scrollerBar'
+  import {default as scrollerBarFn} from './scrollerBarV2';
 
   var dataSet = new Array,
       metaData = new Array,
@@ -46,8 +46,8 @@
   var legendBar = _selection.append('g').attr('id','legendBar').attr('transform',d3.zoomIdentity.translate(30,0));;
   var mainCanvas = _selection.append('g').attr('id','mainCanvas').attr('transform',d3.zoomIdentity.translate(30,cellHeight));
   var groupBar = _selection.append('g').attr('id','groupBar').attr('transform',d3.zoomIdentity.translate(30,height+cellHeight));	
-  var lineView = _selection.append('g').attr('id','lineView').attr('transform',d3.zoomIdentity.translate(width+40+30,cellHeight));
-  var scrollerBar = _selection.append('g').attr('id','searchBar').attr('transform',d3.zoomIdentity.translate(30,cellHeight));
+  var lineView = _selection.append('g').attr('id','lineView').attr('transform',d3.zoomIdentity.translate(width+40+30+200,cellHeight));
+  var scrollerBar = _selection.append('g').attr('id','searchBar').attr('transform',d3.zoomIdentity.translate(width+40+30,cellHeight));
 
   var controlData = (state)=>chartTypeList.map((b)=>{
     let item = {}
