@@ -1421,7 +1421,7 @@ var spotfirePanel = function spotfirePanel(_selection) {
 
         var sampleGroups = utility.flatenNest(utility.groupBy(dataGroups).rollup(function (leave) {
             return leave.map(function (d) {
-                return d.sample_id;
+                return d.situation_id;
             });
         }).object(sampleData)).filter(function (d) {
             return !d.key.includes('null');
@@ -1437,13 +1437,13 @@ var spotfirePanel = function spotfirePanel(_selection) {
             return [].concat(toConsumableArray(acc), toConsumableArray(d.values));
         }, []);
         var chartData = utility.groupBy(trellisGroups).key(function (d) {
-            return sampleMap[d.sample_id];
+            return sampleMap[d.situation_id];
         }).rollup(function (leave) {
             return { y: rollupFn(leave), std: stdFn(leave), peak_id: leave.map(function (d) {
                     return d.peak_id;
                 }) };
         }).entries(mavenData.filter(function (d) {
-            return sampleIds.includes(d.sample_id);
+            return sampleIds.includes(d.situation_id);
         }));
 
         var uiFn = spotfireUI.bindData(chartData).metaData(groupMetadata);
