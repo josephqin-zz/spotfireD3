@@ -2,6 +2,7 @@
 import * as d3 from "d3";
 import {default as inputBox} from "./inputBox";
 import {default as scrollerButton} from "./scrollerButton";
+
 var options=d3.range('100').map((d,i)=>{return {value:'opt'+i,selected:false,show:true}}),
 	width=200,
 	height=300,
@@ -16,6 +17,7 @@ var scrollerBar = function(_selection){
 	let cellWidth = width;
     
 	let dispatcher = d3.dispatch('updateOpts','selectOpt','scrollOpts');
+    //simulate input box using SVG   
     let inputFn = (value)=>{
 		options = options.map((d)=>{return {...d,show:(value && d.value.toLowerCase().indexOf(value.toLowerCase())===-1)?false:true}});
 		rowRanges = d3.range(rowRanges.length)
@@ -32,7 +34,7 @@ var scrollerBar = function(_selection){
 	let selectionPanel = _selection.append('g').attr('id','selectionPanel').attr('transform',d3.zoomIdentity.translate(10,30));
 
 
-
+    //define select option behavior  
 	dispatcher.on('selectOpt',function(opt){
 		options = options.map((d)=>{return {...d,selected:d.value===opt.value?true:false}})//change selected opt statu;
 		selectFn(opt.value);
@@ -40,14 +42,17 @@ var scrollerBar = function(_selection){
 		dispatcher.call('updateOpts',this,rowRanges);//opts refreshed
 		// selectionPanel.selectAll('*').remove();
 	});
-
+    
+    //scrolling up and down
     dispatcher.on('scrollOpts',function(step){
     	if( !( step<0 && d3.min(rowRanges)-1===-1 ) && !( step>0 && d3.max(rowRanges)+1===showOptions.length) )
 		rowRanges = rowRanges.map((d)=>d+step);
 			  
 		dispatcher.call('updateOpts',this,rowRanges);
     })
+    
 
+    //change options list on drop down menu
 	dispatcher.on('updateOpts',function(ranges=[...rowRanges]){
 		selectionPanel.selectAll('*').remove();
 		scrollerPanel.selectAll('*').remove();

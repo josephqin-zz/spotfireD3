@@ -19,13 +19,15 @@
 
   //private functions
   var getMap = (data) => data.reduce((acc,d,i)=>{acc[i]=d.key;return acc},{});
-  //draw rect
+  //draw rectangle/Circle 
   var drawRect = (x,y,width,height) => 'M'+x+' '+y+' v '+height+' h '+width+' v -'+height+' Z';
   var drawCircle = (x,y,radius) => 'M '+(x-radius)+' '+y+' a '+radius+' '+radius+', 0, 1, 0, '+(radius*2)+' '+0+' '+'a '+radius+' '+radius+', 0, 1, 0, '+(-radius*2)+' '+0;
+  
+
   var spotfireUI = function(_selection){
   _selection.selectAll('*').remove();
   
-
+  //data structur for controlbar to switch among different kind of plots
   var chartTypeList = [{name:'bar',type:'bar',color:'#F9D5D3',selected:false},
                         {name:'stack',type:'stackbar',color:'#ECA4A6',selected:false},
                         {name:'pie',type:'grouppie',color:'#807F89',selected:false},
